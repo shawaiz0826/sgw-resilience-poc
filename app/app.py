@@ -438,7 +438,8 @@ with tabs[4]:
                "IDs used; it cannot recommend, change a threshold or write to any log (FR33-FR35). Switch with one "
                "setting: `LLM_PROVIDER` in `.env` (template · anthropic · ollama · groq · gemini).")
     ids = [A["record_id"]] + ([B["record_id"]] if B else [])
-    draft_key = f"draft_{'_'.join(ids)}"
+    n_acts = len(actions_for(A["record_id"]))  # a new P1 action refreshes the draft (it quotes the action)
+    draft_key = f"draft_{'_'.join(ids)}_{n_acts}"
     if draft_key not in st.session_state:
         st.session_state[draft_key] = template.briefing(A, B, actions_for(A["record_id"]))
     b1, b2 = st.columns([1, 3])
