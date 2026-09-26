@@ -1,7 +1,7 @@
 PY ?= .venv/bin/python
 PYTHON_BOOTSTRAP ?= python3.11
 
-.PHONY: setup data pull store inventory fit
+.PHONY: setup data pull store inventory fit tabpfn
 
 setup: .venv/.installed
 
@@ -36,4 +36,10 @@ inventory:
 # Refit C1 (LightGBM + GLM) on Ian + Idalia and regenerate the backtest report (Milton held out).
 fit: setup
 	$(PY) -m src.models.c1_fit
+	$(PY) -m src.models.backtest
+
+# Optional TabPFN v2 benchmark column (needs torch: requirements-optional.txt). Re-run `make fit` after.
+tabpfn: setup
+	.venv/bin/pip install -q -r requirements-optional.txt
+	$(PY) -m src.models.tabpfn_challenger
 	$(PY) -m src.models.backtest

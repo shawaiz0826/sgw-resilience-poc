@@ -1,0 +1,30 @@
+{
+  "model": "tabpfn-v2-reg@4972a65a",
+  "checkpoint": "tabpfn-v2-regressor.ckpt",
+  "sha256": "2ab5a07d5c41dfe6db9aa7ae106fc6de898326c2765be66505a07e2868c10736",
+  "context_rows": 1742,
+  "advisory_time": "2024-10-07 00:00:00+00:00",
+  "attribution": "Built with PriorLabs-TabPFN",
+  "counties": 67,
+  "mae_customers": 26691.6,
+  "mae_frac": 0.1827,
+  "spearman": 0.849,
+  "top_n": 5,
+  "top_n_match": 0.6,
+  "top_n_predicted": [
+    "12021",
+    "12057",
+    "12071",
+    "12095",
+    "12115"
+  ],
+  "top_n_observed": [
+    "12057",
+    "12071",
+    "12081",
+    "12103",
+    "12115"
+  ],
+  "p90_coverage": 0.791,
+  "p10_p90_coverage": 0.507
+}

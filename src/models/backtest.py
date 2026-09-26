@@ -183,16 +183,25 @@ def write_report(b: dict, cfg: dict) -> None:
          "## FR16 — C1 on Milton (held out), all 67 Florida counties", "",
          f"Advisory: {f16['advisory_time']} (T-{f16['hours_to_landfall']:.1f}h, latest advisory at or before T-72h). "
          "Milton was not used in training or tuning.", "",
-         "| Metric | LightGBM (pinball, monotone) | GLM (fractional logit) | Target |", "|---|---|---|---|"]
+         "| Metric | LightGBM (pinball, monotone) | GLM (fractional logit) | TabPFN v2 (challenger, not monotone) | Target |",
+         "|---|---|---|---|---|"]
+    tab = b.get("tabpfn") or {}
     for k, lab, tgt in [("mae_customers", "MAE, customers out per county", ""), ("mae_frac", "MAE, fraction out", ""),
                         ("spearman", "Spearman, county order", ""),
                         ("top_n_match", f"Top-{cfg['top_n']} match", f">= {cfg['banner_topn_match']}"),
                         ("p90_coverage", "P90 coverage", f">= {cfg['banner_p90_coverage']}"),
                         ("p10_p90_coverage", "P10-P90 coverage", "")]:
-        L.append(f"| {lab} | {f16['lgbm'][k]} | {f16['glm'][k]} | {tgt} |")
+        L.append(f"| {lab} | {f16['lgbm'][k]} | {f16['glm'][k]} | {tab.get(k, 'not run')} | {tgt} |")
     L += ["", f"- Observed top {cfg['top_n']}: {nm(f16['lgbm']['top_n_observed'])}.",
           f"- LightGBM top {cfg['top_n']}: {nm(f16['lgbm']['top_n_predicted'])}.",
-          f"- GLM top {cfg['top_n']}: {nm(f16['glm']['top_n_predicted'])}.", "",
+          f"- GLM top {cfg['top_n']}: {nm(f16['glm']['top_n_predicted'])}."]
+    if tab:
+        L += [f"- TabPFN top {cfg['top_n']}: {nm(tab['top_n_predicted'])}.", "",
+              f"TabPFN column: `{tab['model']}` (`{tab['checkpoint']}`, sha256 `{tab['sha256'][:12]}...`), "
+              f"in-context on the same {tab['context_rows']} training rows, no fitting. It has no monotone constraints, so "
+              "it cannot be the active C1 model; it is a benchmark only. **Built with PriorLabs-TabPFN** "
+              "(Prior Labs License 1.1, see docs/licenses/TabPFN-LICENSE.txt)."]
+    L += ["",
           "### Model selection (FR30)", "", f"- {f16['selection']['reason']}.",
           f"- **Active model: `{f16['selection']['model_version']}`.**", "",
           "### Low-confidence banner (FR17)", "",
@@ -239,6 +248,9 @@ def write_report(b: dict, cfg: dict) -> None:
 def main() -> None:
     cfg = load_config()
     b = {"config_version": cfg["_version"], "fr16": fr16(cfg), "fr22": fr22(cfg)}
+    tab = PROCESSED / "backtest_tabpfn.json"  # optional challenger, produced by src/models/tabpfn_challenger.py
+    if tab.exists():
+        b["tabpfn"] = json.loads(tab.read_text())
     sel = b["fr16"]["selection"]
     (MODEL_DIR / "selection.json").write_text(json.dumps({**sel, "banner": b["fr16"]["banner"]}, indent=2))
     (PROCESSED / "backtest.json").write_text(json.dumps(b, indent=2, default=str))
