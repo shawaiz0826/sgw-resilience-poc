@@ -1,0 +1,34 @@
+PY ?= .venv/bin/python
+PYTHON_BOOTSTRAP ?= python3.11
+
+.PHONY: setup data pull store inventory
+
+setup: .venv/.installed
+
+.venv/.installed: requirements.txt
+	$(PYTHON_BOOTSTRAP) -m venv .venv
+	.venv/bin/pip install -q --upgrade pip
+	.venv/bin/pip install -q -r requirements.txt
+	touch $@
+
+# Pull raw public data (network) and rebuild data/processed/. Not needed to run the demo.
+data: setup pull store inventory
+
+pull:
+	$(PY) -m src.pull.counties
+	$(PY) -m src.pull.hurdat
+	$(PY) -m src.pull.wsp
+	$(PY) -m src.pull.psurge
+	$(PY) -m src.pull.eaglei
+	$(PY) -m src.pull.assets
+	$(PY) -m src.pull.fema
+	$(PY) -m src.pull.hwm
+
+store:
+	$(PY) -m src.store.advisory_store
+	$(PY) -m src.store.outages
+	$(PY) -m src.store.registry
+	$(PY) -m src.store.psurge_sites
+
+inventory:
+	$(PY) -m src.pull.inventory

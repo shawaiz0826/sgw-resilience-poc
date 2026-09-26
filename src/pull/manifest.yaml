@@ -1,0 +1,73 @@
+# Data manifest — what each pull script fetches, from where, and under what terms.
+# PLAN §4 IDs. "used" is the endpoint that actually served the data on 2026-09-26; "planned" was PLAN's
+# first choice where it differed. All sources are US public domain unless a license is given.
+study_area:
+  counties: {"12071": Lee, "12015": Charlotte}
+  bbox_lonlat: [-82.45, 26.30, -81.45, 27.10]
+
+datasets:
+  D0:
+    name: County boundaries (Census cartographic, 1:500k)
+    script: src/pull/counties.py
+    used: https://www2.census.gov/geo/tiger/GENZ2023/shp/cb_2023_us_county_500k.zip
+    vintage: "2023"
+  D1:
+    name: HURDAT2 Atlantic best tracks (landfall times only)
+    script: src/pull/hurdat.py
+    used: https://www.nhc.noaa.gov/data/ (latest hurdat2-1851-YYYY txt)
+    vintage: 1851-2025
+  D2:
+    name: NHC wind speed probabilities, 34/50/64 kt, cumulative 0-120 h
+    script: src/pull/wsp.py
+    used: https://www.nhc.noaa.gov/gis/archive_wsp.php (YYYYMMDDHH_wsp_120hr5km.zip)
+    planned: tenthDeg files (not produced for 2022-2024; 5km is the high-resolution product)
+    vintage: per advisory, 6-hourly
+  D3:
+    name: NHC P-Surge, Ian (AL092022), P(surge > N ft above ground), N = 1..6
+    script: src/pull/psurge.py
+    used: https://www.nhc.noaa.gov/gis/archive_psurge_results.php?id=al09&year=2022
+    vintage: per advisory, 6-hourly, 2022-09-26 00Z to 2022-09-30 18Z
+  D4:
+    name: Substations (OSM) and transmission lines (HIFLD)
+    script: src/pull/assets.py
+    used:
+      substations: OpenStreetMap power=substation via Overpass (ODbL)
+      lines: https://services1.arcgis.com/Hp6G80Pky0om7QvQ/arcgis/rest/services/Electric_Power_Transmission_Lines/FeatureServer/0
+    planned: NASA NCCS HIFLD mirror (unreachable); HIFLD Electric Substations (no longer published)
+    license: {substations: "ODbL 1.0 (c) OpenStreetMap contributors"}
+  D5:
+    name: Wastewater treatment plants (EPA FRS) + OSM supplement
+    script: src/pull/assets.py
+    used:
+      - https://services.arcgis.com/XG15cJAlne2vxtgt/arcgis/rest/services/Critical_Infrastructure_Map_Service/FeatureServer/8
+      - OpenStreetMap man_made=wastewater_plant (ODbL)
+  D5b:
+    name: Pumping stations (OSM man_made=pumping_station)
+    script: src/pull/assets.py
+    used: Overpass API
+    license: ODbL 1.0
+  D6:
+    name: FEMA NFHL flood hazard zones (S_FLD_HAZ_AR)
+    script: src/pull/fema.py
+    used: https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_Flood_Hazard_Reduced_Set_gdb/FeatureServer/0
+    planned: https://hazards.fema.gov/gis/nfhl/rest/services/public/NFHL/MapServer/28 (connection reset; tried first)
+    note: reduced set = SFHA + shaded X; unshaded X is inferred for points outside it
+  D7:
+    name: EAGLE-I county outages, 15-min (ORNL), 2022/2023/2024 + MCC customers per county
+    script: src/pull/eaglei.py
+    used: https://api.figshare.com/v2/articles/24237376 (10.6084/m9.figshare.24237376)
+    planned: ORNL Constellation DOI pages (Globus download)
+    license: CC BY 4.0
+  D8:
+    name: USGS STN high-water marks, Hurricane Ian (event 325)
+    script: src/pull/hwm.py
+    used: https://stn.wim.usgs.gov/STNServices/HWMs/FilteredHWMs.json?Event=325&States=FL
+  D9:
+    name: Ground elevation, USGS 3DEP via EPQS (m NAVD88)
+    script: src/pull/elevation.py
+    used: https://epqs.nationalmap.gov/v1/json
+  D12:
+    name: Hospitals (HIFLD)
+    script: src/pull/assets.py
+    used: https://services.arcgis.com/XG15cJAlne2vxtgt/arcgis/rest/services/Critical_Infrastructure_Map_Service/FeatureServer/10
+    planned: NASA NCCS HIFLD mirror (unreachable)
