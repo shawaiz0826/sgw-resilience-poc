@@ -1,5 +1,7 @@
 # SGW Storm Decision Support — prototype
 
+Prepared by Shawaiz Ahmed Bajwa — AECOM AI Solution Engineer case, September 2026.
+
 A working prototype of the MVP in the SGW PRD (v2.0): the Storm Director's mutual aid and staging decision at
 T-72h (**Decision A**) and the control room's substation de-energization decision at T-12h (**Decision B**), run
 from the NHC forecast as issued, on public data for Lee and Charlotte Counties, Florida. The platform recommends,
