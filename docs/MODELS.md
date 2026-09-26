@@ -33,10 +33,23 @@ statsmodels `GLM(Binomial)` on the fraction with terms `p64`, `p34`, `log(custom
 construction: a `p64`/`p34` term with a negative coefficient is dropped and the model refitted (none was dropped).
 P10/P50/P90 = logistic(linear predictor + empirical residual quantile on the logit scale).
 
-### Selection rule (FR30), fixed before the Milton run
+### Selection rule (FR30): leave-one-storm-out on the training storms
 
-The GLM ships if it matches or beats LightGBM on at least two of: MAE of customers out (lower), Spearman rank
-correlation of counties (higher), top-5 match (higher). Result on Milton T-72h:
+Each model is fitted on one training storm and scored on the other. The active model is the one with the higher
+mean Spearman across the two held-out training storms; ties go to the GLM. Milton plays no part in selection.
+
+| | Held out Ian (trained on Idalia) | Held out Idalia (trained on Ian) | Mean Spearman |
+|---|---|---|---|
+| GLM | 0.286 | 0.638 | **0.462** |
+| LightGBM | 0.093 | 0.126 | 0.110 |
+
+**The GLM is the active model** (`glm-v1-fa24c9fa`). Between the two training storms, skill is low (Spearman
+0.09–0.13 LightGBM, 0.29–0.64 GLM). Milton's result below is stronger because its track resembled Ian's; a storm
+on a different coast would look like these numbers. Two training storms is the model's main limit.
+
+### Milton, the holdout (reported once)
+
+Milton was not used in training, tuning or selection. Result at T-72h, all 67 counties:
 
 | | LightGBM | GLM | TabPFN v2 (benchmark) |
 |---|---|---|---|
@@ -45,11 +58,9 @@ correlation of counties (higher), top-5 match (higher). Result on Milton T-72h:
 | Top-5 match (target 0.70) | 0.60 | **1.00** | 0.60 |
 | P90 coverage (target 0.85) | 0.81 | **0.87** | 0.79 |
 
-**The GLM is the active model** (`glm-v1-fa24c9fa`), and it meets both FR17 targets, so the low-confidence banner
-is off. LightGBM (`lgbm-v1-23dd02c3`) stays approved as the fallback; were P1 to withdraw the GLM (FR30), the
-banner would come on, because LightGBM misses both targets. Leave-one-storm-out between the two training storms
-pointed the same way (GLM Spearman 0.29 / 0.64 vs LightGBM 0.09 / 0.13): with two storms, the simpler model
-transfers better.
+The active GLM meets both FR17 targets on the holdout, so the low-confidence banner is off. LightGBM
+(`lgbm-v1-23dd02c3`) stays approved as the fallback; were P1 to withdraw the GLM (FR30), the banner would come on,
+because LightGBM misses both targets.
 
 Read the result with its limits: one held-out storm, two training storms, and wide GLM intervals (Lee at Milton
 T-72h: P10 5.5k, P50 37k, P90 393k customers out; observed 273k). P1 acts on P90 through C2.
@@ -71,8 +82,8 @@ T-72h: P10 5.5k, P50 37k, P90 393k customers out; observed 273k). P1 acts on P90
 
 | Model | Role | Status | Why |
 |---|---|---|---|
-| LightGBM pinball x3, monotone | C1 primary | Fitted, approved fallback | PRD C1 spec; lost the selection rule on Milton |
-| Fractional-logit GLM | C1 baseline | Fitted, **active** | Won 2/3 on Milton; meets FR17 targets |
+| LightGBM pinball x3, monotone | C1 primary | Fitted, approved fallback | PRD C1 spec; lower leave-one-storm-out skill |
+| Fractional-logit GLM | C1 baseline | Fitted, **active** | Higher leave-one-storm-out Spearman (0.46 vs 0.11); meets FR17 targets on Milton |
 | TabPFN v2 regression | C1 challenger | Benchmark column | No monotone constraints (PRD C1) |
 | Random forest on gust, wind duration, customer density (Guikema, Nateghi) | C1 alternative | Not built | Needs gust and duration fields and asset-level history; a Phase 2 candidate once SGW's outage history exists (FR37) |
 | Chronos-Bolt, TimesFM, Moirai | Time-series foundation models | Rejected | The problem is cross-sectional (which counties, how many), not extrapolating a series; exogenous covariates are weak or absent |

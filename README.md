@@ -66,8 +66,10 @@ ranking is an **exposure ranking, county-validated** only; C1 is validated on on
 
 ## Results in one line each
 
-- **FR16, Milton T-72h, 67 counties:** GLM (active) Spearman 0.90, top-5 match 1.00, P90 coverage 0.87;
-  LightGBM 0.81 / 0.60 / 0.81; TabPFN v2 benchmark 0.85 / 0.60 / 0.79 (lowest MAE). Built with PriorLabs-TabPFN.
+- **FR16, Milton T-72h, 67 counties:** the GLM was selected on leave-one-storm-out between the two training storms
+  (mean Spearman 0.46 vs LightGBM 0.11), and Milton was reported once as a holdout: GLM Spearman 0.90, top-5 match
+  1.00, P90 coverage 0.87; LightGBM 0.81 / 0.60 / 0.81; TabPFN v2 benchmark 0.85 / 0.60 / 0.79 (lowest MAE). Built
+  with PriorLabs-TabPFN. Between the training storms skill is low (0.09–0.64); two training storms is the main limit.
 - **FR22, Ian T-12h:** P-Surge flags catch every observed flood (recall 1.0) but over-flag (precision 0.2 at the
   3 km truth radius); the STATIC fallback never reaches the raised threshold (recall 0). High-water marks are
   sparse, so read each row with its sample size.

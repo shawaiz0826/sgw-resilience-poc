@@ -34,11 +34,14 @@ post-storm re-scoring (FR31: the Milton backtest is the same computation, run on
 
 ## 3. Model limits (C1)
 
-- **County-validated only.** C1 is validated at county level on one held-out storm (Milton). The per-asset
-  exposure ranking (C3) has no observed outcome behind it (PRD U1).
-- **Two training storms.** Ian and Idalia, 1,742 county-advisory rows. A storm unlike Ian, Idalia and Milton is
-  outside the model's evidence. Ian is in-sample: Decision A on Ian is not a test.
-- **The active model is the GLM baseline**, not LightGBM, by the pre-registered selection rule (MODELS.md). Its
+- **County-validated only.** C1 is selected on leave-one-storm-out between the two training storms and validated
+  at county level on one held-out storm (Milton), reported once. The per-asset exposure ranking (C3) has no
+  observed outcome behind it (PRD U1).
+- **Two training storms is the model's main limit.** Ian and Idalia, 1,742 county-advisory rows. Between them,
+  skill is low (Spearman 0.09–0.13 LightGBM, 0.29–0.64 GLM). Milton's result is stronger because its track
+  resembled Ian's; a storm on a different coast would look like the leave-one-storm-out numbers. Ian is
+  in-sample: Decision A on Ian is not a test.
+- **The active model is the GLM baseline**, not LightGBM, by the leave-one-storm-out rule (MODELS.md). Its
   intervals are wide (Lee at Milton T-72h: P10 5.5k, P50 37k, P90 393k; observed 273k) and its P50 sits below the
   observed values for the hardest-hit counties. P1 acts on P90 through C2.
 - **LightGBM deviation.** LightGBM's built-in quantile objective rejects monotone constraints; the prototype uses

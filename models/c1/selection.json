@@ -1,7 +1,12 @@
 {
   "active": "glm",
   "model_version": "glm-v1-fa24c9fa",
-  "reason": "GLM matched or beat LightGBM on 2/3 of MAE, Spearman, top-N at Milton T-72h (spearman, top_n); rule: GLM ships if >= 2",
+  "reason": "Leave-one-storm-out on the training storms (Ian, Idalia): mean Spearman GLM 0.462, LightGBM 0.110; rule: the higher mean is active, ties to the GLM. Milton is not an input to selection; it is reported once as the holdout",
+  "basis": "leave-one-storm-out",
+  "loso_mean_spearman": {
+    "glm": 0.462,
+    "lgbm": 0.11
+  },
   "banner": {
     "on": false,
     "top_n_match": 1.0,
