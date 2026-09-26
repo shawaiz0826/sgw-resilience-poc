@@ -9,10 +9,8 @@ from pathlib import Path
 import requests
 
 ROOT = Path(__file__).resolve().parents[2]
-RAW = ROOT / "data" / "raw"
+RAW = ROOT / "data" / "raw"          # created by the pull scripts when they write; the demo never needs it
 PROCESSED = ROOT / "data" / "processed"
-RAW.mkdir(parents=True, exist_ok=True)
-PROCESSED.mkdir(parents=True, exist_ok=True)
 
 # Lee (12071) + Charlotte (12015), Florida. PLAN §4.
 STUDY_FIPS = ["12071", "12015"]
@@ -89,6 +87,7 @@ def utcnow() -> str:
 
 def write_pull_log(dataset_id: str, info: dict) -> None:
     """Record what each pull actually got; inventory.py reads these."""
+    RAW.mkdir(parents=True, exist_ok=True)
     log = RAW / "pull_log.json"
     data = json.loads(log.read_text()) if log.exists() else {}
     data[dataset_id] = {**info, "pulled_at": utcnow()}

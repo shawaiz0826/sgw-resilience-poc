@@ -1,0 +1,13 @@
+services:
+  app:
+    build: .
+    image: sgw-resilience-poc:latest
+    ports:
+      - "127.0.0.1:8501:8501"   # localhost only
+    env_file:
+      - path: .env               # optional: LLM_PROVIDER and keys; template mode without it
+        required: false
+    volumes:
+      - record:/app/var          # the decision record survives container restarts
+volumes:
+  record: {}
