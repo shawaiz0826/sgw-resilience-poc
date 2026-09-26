@@ -76,14 +76,17 @@ def threshold_in_force(cfg: dict, height_source: str = "ESTIMATED") -> float:
     return round(t + float(cfg["decisionB_margin"]), 4) if height_source == "ESTIMATED" else t
 
 
-def critical_loads(registry: pd.DataFrame) -> pd.DataFrame:
-    dep = registry[registry["type"].isin(CRITICAL_TYPES) & registry["feed_asset_id"].notna()]
-    return dep[["asset_id", "type", "name", "feed_asset_id", "feed_kind", "feed_distance_km"]]
+def critical_loads(registry: pd.DataFrame, cfg: dict) -> pd.DataFrame:
+    """Hospitals and pumping stations on a plausible (placeholder) feed; same distance rule as C4."""
+    max_km = float(cfg["placeholder_feed_max_km"])
+    dep = registry[registry["type"].isin(CRITICAL_TYPES) & registry["feed_asset_id"].notna()
+                   & (registry["feed_distance_km"] <= max_km)]
+    return dep[["asset_id", "type", "name", "feed_asset_id", "feed_distance_km"]]
 
 
 def recommend(flags: pd.DataFrame, registry: pd.DataFrame, cfg: dict) -> pd.DataFrame:
     """Add threshold, critical-load check and DE-ENERGIZE / WATCH to the output of inundation()."""
-    crit = critical_loads(registry)
+    crit = critical_loads(registry, cfg)
     out = flags.copy()
     out["threshold"] = [threshold_in_force(cfg, h) for h in out["height_source"]]
     out["above_threshold"] = out["prob"] >= out["threshold"]

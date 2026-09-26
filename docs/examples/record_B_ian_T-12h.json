@@ -1,0 +1,141 @@
+{
+  "record_id": "B-ian-2022092806-df0b8166",
+  "decision": "B",
+  "storm_id": "ian",
+  "advisory_time": "2022-09-28T06:00:00+00:00",
+  "hours_to_landfall": 13.08,
+  "resolution": "5km",
+  "config_version": "v1-aeefd715f473",
+  "model_version": "none (C5 is a rule on P-Surge; no fitted model)",
+  "output_hash": "0c47c833b34067e0",
+  "status": "PROPOSED",
+  "override_reason": null,
+  "crew_hours_entered": null,
+  "crew_hours_source": null,
+  "height_source": "ESTIMATED",
+  "prob_source": "PSURGE",
+  "sensor_value": null,
+  "sensor_note": "BLANK: no flood sensor historian in the prototype (FR21)",
+  "inputs": {
+    "advisory_time": "2022-09-28T06:00:00+00:00",
+    "decision": "B",
+    "height_offset_m": 1.0,
+    "hours_to_landfall": 13.08,
+    "prob_source_note": "P-Surge as issued",
+    "psurge_snapshot": [
+      "psurge/ian/al092022_psurge3_2022092806.zip"
+    ],
+    "psurge_threshold_ft": 3,
+    "resolution": "5km",
+    "screening_zones": [
+      "VE",
+      "V",
+      "AE",
+      "A",
+      "AO",
+      "AH"
+    ],
+    "snapshot_files": [
+      "psurge/ian/al092022_psurge1_2022092806.zip",
+      "psurge/ian/al092022_psurge2_2022092806.zip",
+      "psurge/ian/al092022_psurge3_2022092806.zip",
+      "psurge/ian/al092022_psurge4_2022092806.zip",
+      "wsp/ian/2022092806_wsp_120hr5km.zip"
+    ],
+    "storm_id": "ian",
+    "storm_name": "Ian"
+  },
+  "estimates": {
+    "sensor_note": "no historian in the prototype; blank and marked blank (FR21)",
+    "substations (3 of 25 shown)": [
+      {
+        "asset_id": "SUB-0001",
+        "fema_zone": "AE",
+        "ground_elev_m": 1.983,
+        "height_offset_m": 1.0,
+        "height_source": "ESTIMATED",
+        "lat": 26.933532,
+        "lon": -82.046675,
+        "name": "Florida Power & Light PG1",
+        "prob": 0.81,
+        "prob_basis": "P(surge > 3 ft above ground)",
+        "prob_source": "PSURGE",
+        "psurge_threshold_ft": 3,
+        "switchgear_m_navd88": 2.983
+      },
+      {
+        "asset_id": "SUB-0007",
+        "fema_zone": "AE",
+        "ground_elev_m": 1.092,
+        "height_offset_m": 1.0,
+        "height_source": "ESTIMATED",
+        "lat": 26.463672,
+        "lon": -82.149195,
+        "name": "Sanibel Substation",
+        "prob": 0.99,
+        "prob_basis": "P(surge > 3 ft above ground)",
+        "prob_source": "PSURGE",
+        "psurge_threshold_ft": 3,
+        "switchgear_m_navd88": 2.092
+      },
+      {
+        "asset_id": "SUB-0015",
+        "fema_zone": "AE",
+        "ground_elev_m": 2.072,
+        "height_offset_m": 1.0,
+        "height_source": "ESTIMATED",
+        "lat": 26.486573,
+        "lon": -81.943645,
+        "name": "Iona Substation",
+        "prob": 0.99,
+        "prob_basis": "P(surge > 3 ft above ground)",
+        "prob_source": "PSURGE",
+        "psurge_threshold_ft": 3,
+        "switchgear_m_navd88": 3.072
+      }
+    ]
+  },
+  "recommendation": {
+    "counts": {
+      "DE-ENERGIZE": 14,
+      "WATCH": 11
+    },
+    "margin": 0.15,
+    "margin_applied_because": "switchgear height ESTIMATED",
+    "prob_source": "PSURGE",
+    "substations": [
+      {
+        "above_threshold": true,
+        "asset_id": "SUB-0001",
+        "critical_load_check": "no critical load on feed",
+        "critical_loads": [],
+        "reason": "prob 0.81 >= 0.65, no critical load on feed",
+        "recommendation": "DE-ENERGIZE",
+        "sensor_value": null,
+        "threshold": 0.65
+      },
+      {
+        "above_threshold": true,
+        "asset_id": "SUB-0007",
+        "critical_load_check": "no critical load on feed",
+        "critical_loads": [],
+        "reason": "prob 0.99 >= 0.65, no critical load on feed",
+        "recommendation": "DE-ENERGIZE",
+        "sensor_value": null,
+        "threshold": 0.65
+      },
+      {
+        "above_threshold": true,
+        "asset_id": "SUB-0015",
+        "critical_load_check": "no critical load on feed",
+        "critical_loads": [],
+        "reason": "prob 0.99 >= 0.65, no critical load on feed",
+        "recommendation": "DE-ENERGIZE",
+        "sensor_value": null,
+        "threshold": 0.65
+      }
+    ],
+    "threshold": 0.5,
+    "threshold_in_force": 0.65
+  }
+}

@@ -30,6 +30,8 @@ static_prob:                    # STATIC fallback where no P-Surge snapshot cove
   AH: 0.3
   other: 0.1
 fr22_hwm_radius_m: 500          # a substation is "observed flooded" if an HWM within this radius is above switchgear
+decisionB_starts_hours: 48      # Decision B runs on any advisory with a P-Surge snapshot; without one (prototype: P-Surge
+                                # not loaded), from T-48h, the usual hurricane watch lead, on the STATIC fallback
 
 # --- C3 exposure weights (static, not learned) -------------------------------------------------
 c3_weights:

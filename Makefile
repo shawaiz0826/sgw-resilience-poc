@@ -1,7 +1,7 @@
 PY ?= .venv/bin/python
 PYTHON_BOOTSTRAP ?= python3.11
 
-.PHONY: setup data pull store inventory fit tabpfn
+.PHONY: setup data pull store inventory fit tabpfn test
 
 setup: .venv/.installed
 
@@ -43,3 +43,6 @@ tabpfn: setup
 	.venv/bin/pip install -q -r requirements-optional.txt
 	$(PY) -m src.models.tabpfn_challenger
 	$(PY) -m src.models.backtest
+
+test: setup
+	$(PY) -m pytest -q

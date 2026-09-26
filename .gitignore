@@ -9,3 +9,4 @@ data/raw/
 record.db
 data/processed/record.db
 .streamlit/secrets.toml
+var/
