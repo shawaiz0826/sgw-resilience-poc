@@ -13,7 +13,6 @@ import hashlib
 import json
 from pathlib import Path
 
-import lightgbm as lgb
 import numpy as np
 import pandas as pd
 import statsmodels.api as sm
@@ -35,6 +34,17 @@ LGBM_PARAMS = {
     "deterministic": True, "force_row_wise": True, "num_threads": 1, "seed": 0, "verbose": -1,
 }
 LGBM_ROUNDS = 200
+
+
+def _lgb():
+    """LightGBM is imported only when the LightGBM model is used: its macOS wheel needs a system libomp
+    (brew install libomp), so the app must start without it while the GLM is the active model."""
+    try:
+        import lightgbm
+    except (ImportError, OSError) as e:
+        raise RuntimeError("LightGBM could not load on this machine (macOS: brew install libomp), or run the "
+                           "Docker image") from e
+    return lightgbm
 
 
 def _version(kind: str, folder: Path) -> str:
@@ -70,6 +80,7 @@ class LGBMQuantile:
         y = df["frac_out"].astype(float).to_numpy()
         for name, a in QUANTILES.items():
             self.base[name] = float(np.quantile(y, a))
+            lgb = _lgb()
             ds = lgb.Dataset(df[FEATURES].astype(float), label=y, init_score=np.full(len(y), self.base[name]),
                              free_raw_data=False)
             self.boosters[name] = lgb.train({**LGBM_PARAMS, "objective": self._pinball(a)}, ds,
@@ -92,6 +103,7 @@ class LGBMQuantile:
     @classmethod
     def load(cls) -> "LGBMQuantile":
         folder = MODEL_DIR / cls.kind
+        lgb = _lgb()
         boosters = {n: lgb.Booster(model_file=str(folder / f"{n}.txt")) for n in QUANTILES}
         return cls(boosters, json.loads((folder / "base.json").read_text()))
 

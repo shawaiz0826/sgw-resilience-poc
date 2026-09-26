@@ -54,7 +54,7 @@ def decision_a(storm_id: str, t: pd.Timestamp, cfg: dict, model_kind: str | None
     cells = cells_at(storm_id, t)
     site_p64 = {s["site_id"]: float(cells["p64"].get(cell_id_for(s["lon"], s["lat"]), 0.0)) for s in cfg["staging_sites"]}
     own = float(own_crew_hours) if own_crew_hours is not None else float(cfg["own_crew_hours_default"])
-    own_src = "entered by P1" if own_crew_hours is not None else "PLACEHOLDER default (config own_crew_hours_default)"
+    own_src = "entered by P1" if own_crew_hours is not None else "PLACEHOLDER default, config own_crew_hours_default"
     zones = [{"zone_fips": r.fips, "zone_name": r.county, "out_p50": r.out_p50, "out_p90": r.out_p90}
              for r in est[est["study_zone"]].itertuples()]
     plan = staging_plan(zones, site_p64, own, cfg)                                       # C2

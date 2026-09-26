@@ -1,7 +1,8 @@
 PY ?= .venv/bin/python
-PYTHON_BOOTSTRAP ?= python3.11
+PYTHON_BOOTSTRAP ?= $(shell command -v python3.11 || command -v python3.12 || command -v python3)
+PORT ?= 8501
 
-.PHONY: setup data pull store inventory fit tabpfn test
+.PHONY: setup demo data pull store inventory fit tabpfn test
 
 setup: .venv/.installed
 
@@ -10,6 +11,10 @@ setup: .venv/.installed
 	.venv/bin/pip install -q --upgrade pip
 	.venv/bin/pip install -q -r requirements.txt
 	touch $@
+
+# Run the app from committed data/processed/ (no API key, no data download). Open http://localhost:$(PORT)
+demo: setup
+	$(PY) -m streamlit run app/app.py --server.port $(PORT)
 
 # Pull raw public data (network) and rebuild data/processed/. Not needed to run the demo.
 data: setup pull store inventory
