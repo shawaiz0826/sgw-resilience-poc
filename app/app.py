@@ -297,14 +297,14 @@ with tabs[1]:
                         "otherwise, and routes to **P2's judgment**."
                         f" · Height :orange-badge[ESTIMATED] ground (3DEP) + {C['height_offset_m']} m placeholder offset"
                         " · Flood sensor :gray-badge[BLANK] no historian in the prototype (FR21)")
-        above = sb["above_threshold"].apply(lambda v: bool(v) if isinstance(v, (bool, int)) else False)
-        held = sb[(sb["recommendation"] == "WATCH") & above]
+        held = sb[sb["escalation"].fillna(False).astype(bool)]
         n_judg = int((sb["recommendation"] == "JUDGMENT").sum())
         m1, m2, m3, m4, m5 = st.columns(5)
         m1.metric("Screening set", len(sb), help="Substations in FEMA zones " + ", ".join(C["screening_zones"]))
         m2.metric("🔴 DE-ENERGIZE", int((sb["recommendation"] == "DE-ENERGIZE").sum()))
-        m3.metric("🟡 WATCH: critical load", len(held), help="Above threshold, but a hospital or pumping station on the "
-                                                             "PLACEHOLDER FEED has unknown backup (A18)")
+        m3.metric("🟠 ESCALATE: confirm backup", len(held), help="Above threshold, held on WATCH: a hospital or pumping "
+                                                                 "station on the PLACEHOLDER FEED has unknown backup (A18). "
+                                                                 "Confirm its backup before de-energizing.")
         m4.metric("🟡 WATCH: below threshold", int((sb["recommendation"] == "WATCH").sum()) - len(held))
         m5.metric("⚪ JUDGMENT (STATIC)", n_judg, help="No P-Surge snapshot: STATIC tier from FEMA zone and BFE; P2 decides")
         mc1 = mc2 = st.container()
@@ -325,10 +325,13 @@ with tabs[1]:
                 h["txt"] = [f"HWM {w:.2f} m NAVD88" for w in h["water_elev_m_navd88"]]
                 layers.append(pdk.Layer("ScatterplotLayer", h, get_position=["lon", "lat"], get_radius=4, radius_units="'pixels'",
                                         get_fill_color=ui.rgb(ui.SEQ[11], 220), pickable=True))
-            sb["color"] = [ui.rgb(ui.STATUS["critical"]) if r == "DE-ENERGIZE" else
-                           (ui.rgb(ui.INK["muted"]) if r == "JUDGMENT" else ui.rgb(ui.STATUS["warning"])) for r in sb["recommendation"]]
-            sb["txt"] = [f"{n or a} · {r} · " + (f"STATIC tier {t}" if r == "JUDGMENT" else f"p {p:.2f}")
-                         for n, a, r, p, t in zip(sb["name"], sb["asset_id"], sb["recommendation"], sb["prob"], sb["static_tier"])]
+            esc = sb["escalation"].fillna(False).astype(bool)
+            sb["color"] = [ui.rgb(ui.STATUS["critical"]) if r == "DE-ENERGIZE" else ui.rgb(ui.STATUS["serious"]) if e else
+                           (ui.rgb(ui.INK["muted"]) if r == "JUDGMENT" else ui.rgb(ui.STATUS["warning"]))
+                           for r, e in zip(sb["recommendation"], esc)]
+            sb["txt"] = [f"{n or a} · {'WATCH · ESCALATE' if e else r} · " + (f"STATIC tier {t}" if r == "JUDGMENT" else f"p {p:.2f}")
+                         for n, a, r, p, t, e in zip(sb["name"], sb["asset_id"], sb["recommendation"], sb["prob"],
+                                                     sb["static_tier"], esc)]
             layers.append(pdk.Layer("ScatterplotLayer", sb, get_position=["lon", "lat"], get_radius=8, radius_units="'pixels'",
                                     get_fill_color="color", stroked=True, get_line_color=[255, 255, 255], line_width_min_pixels=2,
                                     pickable=True))
@@ -343,7 +346,7 @@ with tabs[1]:
                                         filled=False, stroked=True, get_line_color=ui.rgb(ui.INK["primary"]),
                                         line_width_min_pixels=3, pickable=True))
             st.pydeck_chart(ui.deck(layers, ui.STUDY_VIEW, {"html": "{txt}", "style": ui.TOOLTIP_STYLE}, height=440))
-            st.caption("🔴 DE-ENERGIZE · 🟡 WATCH · ⚪ JUDGMENT (STATIC tier) · ◯ hollow ring = outside the screening set, "
+            st.caption("🔴 DE-ENERGIZE · 🟠 ESCALATE (WATCH, confirm backup) · 🟡 WATCH · ⚪ JUDGMENT (STATIC tier) · ◯ hollow ring = outside the screening set, "
                        "P-Surge above threshold · blue fill = FEMA special flood hazard area (darker = VE) · dark dots = "
                        "Ian high-water marks. Hover for values.")
             if len(ox):
@@ -354,7 +357,8 @@ with tabs[1]:
                                             "prob": st.column_config.NumberColumn("P-Surge", format="%.2f"),
                                             "ground_elev_m": st.column_config.NumberColumn("Ground m", format="%.2f")})
         with mc2:
-            sb["rec"] = sb["recommendation"].map(ui.REC_ICON)
+            sb["rec"] = ["🟠 WATCH · ESCALATE" if e else ui.REC_ICON.get(r, r) for r, e in
+                         zip(sb["recommendation"], sb["escalation"].fillna(False).astype(bool))]
             cols = ["asset_id", "name", "fema_zone", "ground_elev_m", "switchgear_m_navd88", "prob", "prob_source", "threshold",
                     "critical_load_check", "rec", "reason"]
             if n_judg:

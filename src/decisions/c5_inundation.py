@@ -8,7 +8,8 @@
   P-Surge is "surge above ground", so the offset maps to the P-Surge threshold at or below it (conservative).
 - Threshold in force = decisionB_threshold + decisionB_margin while the height is ESTIMATED.
 - PSURGE rows: DE-ENERGIZE if prob >= threshold and no critical load on the feed is left without backup; the
-  prototype knows no backup status, so any hospital or pumping station on the feed forces WATCH (A18).
+  prototype knows no backup status, so any hospital or pumping station on the feed holds the site on WATCH
+  with escalation: a person confirms that load's backup before de-energizing (A18).
 Pure functions: config and tables in, DataFrame out.
 """
 from __future__ import annotations
@@ -111,8 +112,9 @@ def recommend(flags: pd.DataFrame, registry: pd.DataFrame, cfg: dict) -> pd.Data
     out["critical_loads"] = out["asset_id"].map(loads).apply(lambda v: v if isinstance(v, list) else [])
     out["critical_load_check"] = np.where(out["critical_loads"].str.len() > 0, "critical load, backup unknown",
                                           "no critical load on feed")
-    rec, reason = [], []
+    rec, reason, escalation = [], [], []
     for _, r in out.iterrows():
+        escalation.append(bool(r["prob_source"] == "PSURGE" and r["above_threshold"] and r["critical_loads"]))
         if r["prob_source"] != "PSURGE":
             rec.append("JUDGMENT")
             reason.append(f"STATIC: no P-Surge snapshot for this advisory; tier {r['static_tier']} from FEMA zone and BFE; "
@@ -121,12 +123,12 @@ def recommend(flags: pd.DataFrame, registry: pd.DataFrame, cfg: dict) -> pd.Data
             rec.append("WATCH")
             reason.append(f"prob {r['prob']:.2f} below threshold {r['threshold']:.2f}")
         elif r["critical_loads"]:
-            rec.append("WATCH")
-            reason.append(f"prob {r['prob']:.2f} >= {r['threshold']:.2f} but critical load, backup unknown "
-                          f"({', '.join(r['critical_loads'])})")
+            rec.append("WATCH")  # held for escalation: backup status unknown (A18), a person confirms it first
+            reason.append(f"prob {r['prob']:.2f} >= {r['threshold']:.2f}; ESCALATE: confirm backup for "
+                          f"{', '.join(r['critical_loads'])} before de-energizing")
         else:
             rec.append("DE-ENERGIZE")
             reason.append(f"prob {r['prob']:.2f} >= {r['threshold']:.2f}, no critical load on feed")
-    out["recommendation"], out["reason"] = rec, reason
+    out["recommendation"], out["reason"], out["escalation"] = rec, reason, escalation
     out["sensor_value"] = None  # FR21: no historian in the prototype; blank and marked blank
     return out

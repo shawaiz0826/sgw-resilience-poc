@@ -48,8 +48,8 @@ to Sebring by the wind rule.
 
 **B. Ian, T-12h (P2).** Switch the storm to Ian: the 28 Sep 06Z advisory runs Decision B on the 25 substations in
 FEMA flood zones with NHC's real P-Surge (P(surge > 3 ft above ground)), an ESTIMATED switchgear height (ground +
-1.0 m) and the threshold raised from 0.50 to 0.65 because the height is estimated. **14 DE-ENERGIZE, 11 WATCH**,
-4 of them held on WATCH because a hospital or pumping station on the placeholder feed has unknown backup. Toggle
+1.0 m) and the threshold raised from 0.50 to 0.65 because the height is estimated. **14 DE-ENERGIZE, 11 WATCH**
+(of the WATCH, 4 held for escalation: confirm hospital or pumping-station backup before de-energizing). Toggle
 the USGS high-water marks on the map; the FR22 table compares the flags with what Ian did.
 
 ## What is real and what is a placeholder

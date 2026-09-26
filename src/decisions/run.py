@@ -95,7 +95,7 @@ def decision_b(storm_id: str, t: pd.Timestamp, cfg: dict) -> dict | None:
     est_cols = ["asset_id", "name", "lon", "lat", "fema_zone", "ground_elev_m", "switchgear_m_navd88", "height_source",
                 "height_offset_m", "prob", "prob_source", "prob_basis", "psurge_threshold_ft", "static_tier"]
     rec_cols = ["asset_id", "threshold", "above_threshold", "critical_loads", "critical_load_check", "recommendation",
-                "reason", "sensor_value"]
+                "escalation", "reason", "sensor_value"]
     counts = flags["recommendation"].value_counts().to_dict()
     recommendation = {"substations": records(flags[rec_cols]), "threshold_in_force": c5.threshold_in_force(cfg),
                       "threshold": cfg["decisionB_threshold"], "margin": cfg["decisionB_margin"],

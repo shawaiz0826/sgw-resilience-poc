@@ -46,7 +46,7 @@ def briefing(a: dict, b: dict | None, actions_a: list[dict] | None = None) -> st
         rows = {r["asset_id"]: r for r in b["estimates"]["substations"]}
         nm = lambda r: rows[r["asset_id"]]["name"] or r["asset_id"]  # noqa: E731
         de = [r for r in rc["substations"] if r["recommendation"] == "DE-ENERGIZE"]
-        held = [r for r in rc["substations"] if r["recommendation"] == "WATCH" and r["above_threshold"]]
+        held = [r for r in rc["substations"] if r.get("escalation")]
         judg = [r for r in rc["substations"] if r["recommendation"] == "JUDGMENT"]
         if judg:
             L.append(f"   - Probability source: {rc['prob_source']}: no P-Surge snapshot for this advisory, so each site "
@@ -60,8 +60,8 @@ def briefing(a: dict, b: dict | None, actions_a: list[dict] | None = None) -> st
         if de or held or not judg:
             L.append(f"   - DE-ENERGIZE recommended ({len(de)}): " +
                      (", ".join(f"{nm(r)} ({rows[r['asset_id']]['prob']:.2f})" for r in de) or "none") + ".")
-            L.append(f"   - Held on WATCH for a critical load with unknown backup ({len(held)}): " +
-                     (", ".join(nm(r) for r in held) or "none") + ".")
+            L.append(f"   - ESCALATE, held on WATCH: confirm backup before de-energizing ({len(held)}): " +
+                     (", ".join(f"{nm(r)} (confirm backup for {', '.join(r['critical_loads'])})" for r in held) or "none") + ".")
             L.append(f"   - Other screening-set substations on WATCH: {rc['counts'].get('WATCH', 0) - len(held)}.")
     deps = [d for d in a["estimates"]["dependents"] if d["type"] == "pumping" and d["inherited_score"] is not None][:5]
     L += ["", "4. Pumping stations by inherited exposure (generator list, PLACEHOLDER FEED)"]

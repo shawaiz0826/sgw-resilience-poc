@@ -84,7 +84,9 @@ def test_critical_load_forces_watch():
     ps = pd.DataFrame([{"storm_id": "x", "advisory_time": pd.Timestamp("2024-01-01", tz="UTC"), "asset_id": a,
                         "threshold_ft": 3, "prob": 0.99} for a in ("SUB-1", "SUB-2")])
     f = c5.recommend(c5.inundation(reg, ps, "x", pd.Timestamp("2024-01-01", tz="UTC"), CFG), reg, CFG).set_index("asset_id")
-    assert f.loc["SUB-1", "recommendation"] == "WATCH" and "backup unknown" in f.loc["SUB-1", "reason"]
+    assert f.loc["SUB-1", "recommendation"] == "WATCH" and bool(f.loc["SUB-1", "escalation"])
+    assert "ESCALATE: confirm backup for hospital:HSP-1 before de-energizing" in f.loc["SUB-1", "reason"]
+    assert not bool(f.loc["SUB-2", "escalation"])
     assert f.loc["SUB-2", "recommendation"] == "DE-ENERGIZE"  # PMP-1's placeholder feed is 25 km: not a load on SUB-2
     assert f["sensor_value"].isna().all()
 
