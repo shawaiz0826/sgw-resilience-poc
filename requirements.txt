@@ -1,0 +1,16 @@
+geopandas==1.1.4
+lightgbm==4.7.0
+numpy==2.4.6
+pandas==3.0.6
+pyarrow==25.0.1
+pydeck==0.9.3
+pyogrio==0.13.0
+pyproj==3.7.2
+pytest==9.1.1
+PyYAML==6.0.3
+requests==2.34.2
+scikit-learn==1.9.1
+scipy==1.17.1
+shapely==2.1.2
+statsmodels==0.15.0
+streamlit==1.64.0
