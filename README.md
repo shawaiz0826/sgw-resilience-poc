@@ -31,6 +31,11 @@ LightGBM fallback model cannot load (`brew install libomp`, or use Docker). Othe
 tests), `make fit` (refit C1 and regenerate the backtest), `make data` (re-pull every public source, needs
 network), `make tabpfn` (optional benchmark, installs torch).
 
+**Verified on fresh clones of commit `599f045` (26 Sep 2026, macOS on Apple silicon, Docker via colima):**
+`docker compose up --build` (image built with no cache; `/_stcore/health` returns ok; both demo beats clicked
+through end to end in a browser) and `make demo` in a clean Python 3.11 venv (same click-through; `make test`: 22
+passed).
+
 | P1 Storm Director, Milton T-72h | P2 Control room, Ian T-13h |
 |---|---|
 | ![P1](docs/screenshots/p1_milton_t72.png) | ![P2](docs/screenshots/p2_ian_t12.png) |
