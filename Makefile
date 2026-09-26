@@ -14,7 +14,7 @@ setup: .venv/.installed
 
 # Run the app from committed data/processed/ (no API key, no data download). Open http://localhost:$(PORT)
 demo: setup
-	$(PY) -m streamlit run app/app.py --server.port $(PORT)
+	$(PY) -m streamlit run app/app.py --server.port $(PORT) --server.address 127.0.0.1
 
 # Pull raw public data (network) and rebuild data/processed/. Not needed to run the demo.
 data: setup pull store inventory

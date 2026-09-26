@@ -214,7 +214,7 @@ with tabs[0]:
         zp["assigned"] = [f"{'⚠️ DISPLACED → ' if d else ''}{s or 'none below threshold: P1 decides'}"
                           for d, s in zip(zp["displaced"], zp["assigned_site_name"])]
         zp["mapped"] = [f"{n} ({p:.2f})" for n, p in zip(zp["mapped_site_name"], zp["mapped_site_p64"])]
-        st.dataframe(zp[["zone_name", "customers_out_p50", "customers_out_p90", "crew_hours_p90", "mapped", "assigned"]],
+        st.dataframe(zp[["zone_name", "assigned", "customers_out_p50", "customers_out_p90", "crew_hours_p90", "mapped"]],
                      hide_index=True, width="stretch",
                      column_config={"zone_name": "Zone", "customers_out_p50": st.column_config.NumberColumn("P50 out", format="%,d"),
                                     "customers_out_p90": st.column_config.NumberColumn("P90 out", format="%,d"),
@@ -340,6 +340,8 @@ with tabs[1]:
             s1, s2 = st.columns(2)
             do_sign = s1.form_submit_button("Sign off recommendation", type="primary")
             do_decline = s2.form_submit_button("Decline")
+            if (do_sign or do_decline) and not picked:
+                st.warning("Pick at least one substation.")
             if (do_sign or do_decline) and picked:
                 try:
                     for a in picked:
@@ -356,7 +358,9 @@ with tabs[1]:
             if pd.Timestamp(f22["advisory_time"]) == t:
                 st.markdown("#### FR22 — how this advisory's flags compare with what Ian did (USGS high-water marks)")
                 rows = []
+                short = {"max_500m": "any HWM ≤ 500 m (PLAN)", "idw_1km": "IDW ≤ 1 km", "idw_3km": "IDW ≤ 3 km"}
                 for tk, lab in f22["truth_defs"].items():
+                    lab = short.get(tk, lab)
                     for v in ("psurge_screening_set", "static_screening_set"):
                         r = f22["results"][tk][v]
                         rows.append({"truth": lab, "variant": "P-Surge" if v.startswith("psurge") else "STATIC fallback",
