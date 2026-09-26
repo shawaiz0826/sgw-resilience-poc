@@ -1,0 +1,18 @@
+{
+  "lgbm_trained_without_ian": {
+    "spearman_frac": 0.093,
+    "p90_coverage": 0.62
+  },
+  "glm_trained_without_ian": {
+    "spearman_frac": 0.286,
+    "p90_coverage": 0.859
+  },
+  "lgbm_trained_without_idalia": {
+    "spearman_frac": 0.126,
+    "p90_coverage": 0.735
+  },
+  "glm_trained_without_idalia": {
+    "spearman_frac": 0.638,
+    "p90_coverage": 0.89
+  }
+}

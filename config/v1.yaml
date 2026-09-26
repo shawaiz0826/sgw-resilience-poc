@@ -1,0 +1,59 @@
+# SGW Resilience POC — configuration v1 (PRD FR28: every configurable value lives here).
+# The config version shown on every screen and stored in every record is "v1-" + first 12 hex of sha256(this file).
+# Values marked PLACEHOLDER are engineering placeholders until SGW supplies its own (PRD Appendix A).
+
+# --- Decision A (C2) ---------------------------------------------------------------------------
+restoration_rate: 10            # customers restored per worker-day (PRD A13; Ian proxy)
+hours_per_worker_day: 8
+crew_size: 4                    # PLACEHOLDER: workers per mutual aid crew
+restoration_days: 7             # PLACEHOLDER: restoration window the request is sized for (Ian took ~9 days)
+own_crew_hours_default: 20000   # PLACEHOLDER: SGW's own available crew-hours, typed by P1 in production (FR11)
+site_wind_threshold: 0.5        # staging site displaced if its 64 kt probability exceeds this (C2 rule c)
+staging_sites:                  # PLACEHOLDER list (PRD A19: the real list lives in SGW's storm plan)
+  - {site_id: FTM, name: Fort Myers, lon: -81.8723, lat: 26.6406, zone_fips: "12071"}
+  - {site_id: PGD, name: Punta Gorda, lon: -82.0454, lat: 26.9298, zone_fips: "12015"}
+  - {site_id: SRQ, name: Sarasota, lon: -82.5307, lat: 27.3364, zone_fips: null}
+  - {site_id: SEB, name: Sebring, lon: -81.4409, lat: 27.4956, zone_fips: null}
+
+# --- Decision B (C5) ---------------------------------------------------------------------------
+decisionB_threshold: 0.5        # de-energize if P(inundation above switchgear) >= threshold (+ margin if ESTIMATED)
+decisionB_margin: 0.15          # raised threshold while switchgear height is ESTIMATED
+height_offset_m: 1.0            # PLACEHOLDER: switchgear height above ground (ESTIMATED fallback)
+screening_zones: [VE, V, AE, A, AO, AH]
+static_prob:                    # STATIC fallback where no P-Surge snapshot covers the site
+  VE: 0.7
+  V: 0.7
+  AE_bfe_above_switchgear: 0.5
+  AE: 0.3
+  A: 0.3
+  AO: 0.3
+  AH: 0.3
+  other: 0.1
+fr22_hwm_radius_m: 500          # a substation is "observed flooded" if an HWM within this radius is above switchgear
+
+# --- C3 exposure weights (static, not learned) -------------------------------------------------
+c3_weights:
+  fema_zone: {VE: 1.5, V: 1.5, AE: 1.3, A: 1.3, AH: 1.2, AO: 1.2, X_shaded: 1.1, X: 1.0}
+  elev_bands:                   # ground elevation, m NAVD88; first band whose upper bound exceeds the value
+    - {max_m: 2.0, w: 1.3}
+    - {max_m: 4.0, w: 1.15}
+    - {max_m: 6.0, w: 1.0}
+    - {max_m: 999, w: 0.9}
+  voltage:
+    "distribution (<69 kV)": 1.2
+    "sub-T (69-114 kV)": 1.1
+    "HV (115-230 kV)": 1.0
+    "EHV (>=345 kV)": 0.9
+    unknown: 1.0
+
+# --- C4 ----------------------------------------------------------------------------------------
+placeholder_feed_max_km: 10
+
+# --- Governance --------------------------------------------------------------------------------
+staleness_months: 24            # PRD R8: rating/inspection older than this fails the completeness flag
+top_n: 5                        # FR16/FR17 top-N county match
+banner_topn_match: 0.70         # FR17: banner if top-N match below this on the held-out storm
+banner_p90_coverage: 0.85       # FR17: banner if P90 coverage below this
+decisionA_lead_hours: 72        # backtest advisory: latest advisory issued at or before T-72h
+decisionB_lead_hours: 12        # FR22 advisory: latest advisory issued at or before T-12h
+active_model: auto              # "auto" = the model chosen by the backtest selection rule (FR30)

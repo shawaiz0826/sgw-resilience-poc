@@ -1,0 +1,412 @@
+{
+  "config_version": "v1-e15563cac687",
+  "fr16": {
+    "advisory_time": "2024-10-07 00:00:00+00:00",
+    "hours_to_landfall": 72.5,
+    "lgbm": {
+      "model_version": "lgbm-v1-23dd02c3",
+      "counties": 67,
+      "mae_customers": 40770.4,
+      "mae_frac": 0.205,
+      "spearman": 0.81,
+      "top_n": 5,
+      "top_n_match": 0.6,
+      "top_n_predicted": [
+        "12021",
+        "12071",
+        "12086",
+        "12103",
+        "12115"
+      ],
+      "top_n_observed": [
+        "12057",
+        "12071",
+        "12081",
+        "12103",
+        "12115"
+      ],
+      "p90_coverage": 0.806,
+      "p10_p90_coverage": 0.672
+    },
+    "glm": {
+      "model_version": "glm-v1-fa24c9fa",
+      "counties": 67,
+      "mae_customers": 48449.0,
+      "mae_frac": 0.2323,
+      "spearman": 0.899,
+      "top_n": 5,
+      "top_n_match": 1.0,
+      "top_n_predicted": [
+        "12057",
+        "12071",
+        "12081",
+        "12103",
+        "12115"
+      ],
+      "top_n_observed": [
+        "12057",
+        "12071",
+        "12081",
+        "12103",
+        "12115"
+      ],
+      "p90_coverage": 0.866,
+      "p10_p90_coverage": 0.701
+    },
+    "selection": {
+      "active": "glm",
+      "model_version": "glm-v1-fa24c9fa",
+      "reason": "GLM matched or beat LightGBM on 2/3 of MAE, Spearman, top-N at Milton T-72h (spearman, top_n); rule: GLM ships if >= 2"
+    },
+    "banner": {
+      "on": false,
+      "top_n_match": 1.0,
+      "p90_coverage": 0.866,
+      "targets": {
+        "top_n_match": 0.7,
+        "p90_coverage": 0.85
+      }
+    },
+    "study_counties": [
+      {
+        "model": "lgbm",
+        "fips": "12071",
+        "county": "Lee",
+        "customers": 628635,
+        "coastal": 1,
+        "p64": 0.2052,
+        "p34": 0.6686,
+        "p10": 0.0674,
+        "p50": 0.1991,
+        "p90": 0.7248,
+        "frac_out": 0.435,
+        "pred_out_p10": 42373.0848,
+        "pred_out_p50": 125172.5407,
+        "pred_out_p90": 455616.6404,
+        "obs_out": 273449.5
+      },
+      {
+        "model": "lgbm",
+        "fips": "12015",
+        "county": "Charlotte",
+        "customers": 129889,
+        "coastal": 1,
+        "p64": 0.1908,
+        "p34": 0.6543,
+        "p10": 0.0792,
+        "p50": 0.3432,
+        "p90": 0.9717,
+        "frac_out": 0.7477,
+        "pred_out_p10": 10282.4575,
+        "pred_out_p50": 44573.8093,
+        "pred_out_p90": 126217.591,
+        "obs_out": 97114.0
+      },
+      {
+        "model": "glm",
+        "fips": "12071",
+        "county": "Lee",
+        "customers": 628635,
+        "coastal": 1,
+        "p64": 0.2052,
+        "p34": 0.6686,
+        "p10": 0.0088,
+        "p50": 0.0588,
+        "p90": 0.625,
+        "frac_out": 0.435,
+        "pred_out_p10": 5518.2464,
+        "pred_out_p50": 36962.015,
+        "pred_out_p90": 392868.5698,
+        "obs_out": 273449.5
+      },
+      {
+        "model": "glm",
+        "fips": "12015",
+        "county": "Charlotte",
+        "customers": 129889,
+        "coastal": 1,
+        "p64": 0.1908,
+        "p34": 0.6543,
+        "p10": 0.0141,
+        "p50": 0.0914,
+        "p90": 0.7285,
+        "frac_out": 0.7477,
+        "pred_out_p10": 1826.1041,
+        "pred_out_p50": 11871.1344,
+        "pred_out_p90": 94622.7263,
+        "obs_out": 97114.0
+      }
+    ]
+  },
+  "fr22": {
+    "advisory_time": "2022-09-28 06:00:00+00:00",
+    "height_offset_m": 1.0,
+    "threshold_in_force": 0.65,
+    "primary_truth": "max_500m",
+    "truth_defs": {
+      "max_500m": "any HWM within 500 m above switchgear (PLAN rule)",
+      "idw_1km": "IDW water surface of HWMs within 1 km above switchgear",
+      "idw_3km": "IDW water surface of HWMs within 3 km above switchgear"
+    },
+    "results": {
+      "max_500m": {
+        "psurge_screening_set": {
+          "substations": 25,
+          "with_hwm_observation": 2,
+          "observed_flooded": 2,
+          "prob_sources": {
+            "PSURGE": 25
+          },
+          "inundation_flag": {
+            "tp": 2,
+            "fp": 0,
+            "fn": 0,
+            "tn": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          "de_energize": {
+            "tp": 2,
+            "fp": 0,
+            "fn": 0,
+            "tn": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          "recommendations": {
+            "DE-ENERGIZE": 14,
+            "WATCH": 11
+          }
+        },
+        "static_screening_set": {
+          "substations": 25,
+          "with_hwm_observation": 2,
+          "observed_flooded": 2,
+          "prob_sources": {
+            "STATIC": 25
+          },
+          "inundation_flag": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 2,
+            "tn": 0,
+            "precision": null,
+            "recall": 0.0
+          },
+          "de_energize": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 2,
+            "tn": 0,
+            "precision": null,
+            "recall": 0.0
+          },
+          "recommendations": {
+            "WATCH": 25
+          }
+        },
+        "psurge_all_substations": {
+          "substations": 64,
+          "with_hwm_observation": 2,
+          "observed_flooded": 2,
+          "prob_sources": {
+            "PSURGE": 64
+          },
+          "inundation_flag": {
+            "tp": 2,
+            "fp": 0,
+            "fn": 0,
+            "tn": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          "de_energize": {
+            "tp": 2,
+            "fp": 0,
+            "fn": 0,
+            "tn": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          "recommendations": {
+            "WATCH": 43,
+            "DE-ENERGIZE": 21
+          }
+        },
+        "flooded_outside_screening_set": []
+      },
+      "idw_1km": {
+        "psurge_screening_set": {
+          "substations": 25,
+          "with_hwm_observation": 4,
+          "observed_flooded": 2,
+          "prob_sources": {
+            "PSURGE": 25
+          },
+          "inundation_flag": {
+            "tp": 2,
+            "fp": 2,
+            "fn": 0,
+            "tn": 0,
+            "precision": 0.5,
+            "recall": 1.0
+          },
+          "de_energize": {
+            "tp": 2,
+            "fp": 1,
+            "fn": 0,
+            "tn": 1,
+            "precision": 0.667,
+            "recall": 1.0
+          },
+          "recommendations": {
+            "DE-ENERGIZE": 14,
+            "WATCH": 11
+          }
+        },
+        "static_screening_set": {
+          "substations": 25,
+          "with_hwm_observation": 4,
+          "observed_flooded": 2,
+          "prob_sources": {
+            "STATIC": 25
+          },
+          "inundation_flag": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 2,
+            "tn": 2,
+            "precision": null,
+            "recall": 0.0
+          },
+          "de_energize": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 2,
+            "tn": 2,
+            "precision": null,
+            "recall": 0.0
+          },
+          "recommendations": {
+            "WATCH": 25
+          }
+        },
+        "psurge_all_substations": {
+          "substations": 64,
+          "with_hwm_observation": 7,
+          "observed_flooded": 2,
+          "prob_sources": {
+            "PSURGE": 64
+          },
+          "inundation_flag": {
+            "tp": 2,
+            "fp": 4,
+            "fn": 0,
+            "tn": 1,
+            "precision": 0.333,
+            "recall": 1.0
+          },
+          "de_energize": {
+            "tp": 2,
+            "fp": 2,
+            "fn": 0,
+            "tn": 3,
+            "precision": 0.5,
+            "recall": 1.0
+          },
+          "recommendations": {
+            "WATCH": 43,
+            "DE-ENERGIZE": 21
+          }
+        },
+        "flooded_outside_screening_set": []
+      },
+      "idw_3km": {
+        "psurge_screening_set": {
+          "substations": 25,
+          "with_hwm_observation": 12,
+          "observed_flooded": 2,
+          "prob_sources": {
+            "PSURGE": 25
+          },
+          "inundation_flag": {
+            "tp": 2,
+            "fp": 8,
+            "fn": 0,
+            "tn": 2,
+            "precision": 0.2,
+            "recall": 1.0
+          },
+          "de_energize": {
+            "tp": 2,
+            "fp": 7,
+            "fn": 0,
+            "tn": 3,
+            "precision": 0.222,
+            "recall": 1.0
+          },
+          "recommendations": {
+            "DE-ENERGIZE": 14,
+            "WATCH": 11
+          }
+        },
+        "static_screening_set": {
+          "substations": 25,
+          "with_hwm_observation": 12,
+          "observed_flooded": 2,
+          "prob_sources": {
+            "STATIC": 25
+          },
+          "inundation_flag": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 2,
+            "tn": 10,
+            "precision": null,
+            "recall": 0.0
+          },
+          "de_energize": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 2,
+            "tn": 10,
+            "precision": null,
+            "recall": 0.0
+          },
+          "recommendations": {
+            "WATCH": 25
+          }
+        },
+        "psurge_all_substations": {
+          "substations": 64,
+          "with_hwm_observation": 24,
+          "observed_flooded": 2,
+          "prob_sources": {
+            "PSURGE": 64
+          },
+          "inundation_flag": {
+            "tp": 2,
+            "fp": 14,
+            "fn": 0,
+            "tn": 8,
+            "precision": 0.125,
+            "recall": 1.0
+          },
+          "de_energize": {
+            "tp": 2,
+            "fp": 11,
+            "fn": 0,
+            "tn": 11,
+            "precision": 0.154,
+            "recall": 1.0
+          },
+          "recommendations": {
+            "WATCH": 43,
+            "DE-ENERGIZE": 21
+          }
+        },
+        "flooded_outside_screening_set": []
+      }
+    }
+  }
+}

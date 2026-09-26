@@ -1,0 +1,14 @@
+{
+  "active": "glm",
+  "model_version": "glm-v1-fa24c9fa",
+  "reason": "GLM matched or beat LightGBM on 2/3 of MAE, Spearman, top-N at Milton T-72h (spearman, top_n); rule: GLM ships if >= 2",
+  "banner": {
+    "on": false,
+    "top_n_match": 1.0,
+    "p90_coverage": 0.866,
+    "targets": {
+      "top_n_match": 0.7,
+      "p90_coverage": 0.85
+    }
+  }
+}

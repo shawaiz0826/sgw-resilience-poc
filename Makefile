@@ -1,7 +1,7 @@
 PY ?= .venv/bin/python
 PYTHON_BOOTSTRAP ?= python3.11
 
-.PHONY: setup data pull store inventory
+.PHONY: setup data pull store inventory fit
 
 setup: .venv/.installed
 
@@ -32,3 +32,8 @@ store:
 
 inventory:
 	$(PY) -m src.pull.inventory
+
+# Refit C1 (LightGBM + GLM) on Ian + Idalia and regenerate the backtest report (Milton held out).
+fit: setup
+	$(PY) -m src.models.c1_fit
+	$(PY) -m src.models.backtest

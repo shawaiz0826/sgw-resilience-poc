@@ -1,0 +1,46 @@
+{
+  "model_version": "glm-v1-fa24c9fa",
+  "kind": "glm",
+  "features": [
+    "p64",
+    "p34",
+    "customers",
+    "coastal"
+  ],
+  "target": "peak fraction of customers out",
+  "training_storms": [
+    "ian",
+    "idalia"
+  ],
+  "holdout_storms": [
+    "milton"
+  ],
+  "training_rows": 1742,
+  "training_counties": 67,
+  "horizon_hours_before_landfall": [
+    0.0,
+    78.0
+  ],
+  "training_advisories": 26,
+  "glm": {
+    "terms": [
+      "p64",
+      "p34",
+      "log_customers",
+      "coastal"
+    ],
+    "dropped_for_monotonicity": [],
+    "coef": {
+      "const": 0.6023421382341347,
+      "p64": 3.7665007684692737,
+      "p34": 2.4743251593908844,
+      "log_customers": -0.3590312856540414,
+      "coastal": 0.09430536195402513
+    },
+    "resid_quantiles": {
+      "p10": -3.057191676559467,
+      "p50": -1.1035812242428817,
+      "p90": 2.1801156186505914
+    }
+  }
+}
