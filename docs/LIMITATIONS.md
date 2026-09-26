@@ -19,7 +19,7 @@ Every substitution below is also labelled on screen where it appears.
 | Staging site list (A19) | Four placeholder sites (Fort Myers, Punta Gorda, Sarasota, Sebring) | PLACEHOLDER badge |
 | C6 in a private deployment (A7) | Template by default (no LLM); optional hosted API, or Ollama as the self-hosted switch | Mode shown on the briefing tab |
 | SSO, MFA, RBAC (A20) | None: roles are labels typed into the sign-off forms | Governance tab note |
-| P-Surge for every storm (FR6) | Real P-Surge for Ian only; Milton runs on the STATIC fallback from T-48h | "STATIC (P-Surge grid not loaded)" |
+| P-Surge for every storm (FR6) | Real P-Surge for Ian only; from T-48h Milton gets STATIC tiers routed to P2's judgment | "STATIC (P-Surge grid not loaded)", JUDGMENT |
 
 ## 2. Out of scope (PLAN §1)
 
@@ -62,9 +62,11 @@ post-storm re-scoring (FR31: the Milton backtest is the same computation, run on
   ground surfaces differ locally.
 - **Ian only.** P-Surge thresholds 1-4 ft were retrieved for all 20 Ian cycles; 5-6 ft were not (local DNS
   failures), so offsets above 1.22 m cannot use P-Surge in this build.
-- **STATIC never recommends DE-ENERGIZE.** The STATIC probabilities (0.3 AE, 0.5 AE with BFE above switchgear,
-  0.7 VE; no VE substation in the screening set) sit below the raised threshold, so STATIC resolves to WATCH.
-  Conservative by design, and FR22 recall on STATIC is 0.
+- **STATIC is a tier, not a probability.** Without a P-Surge snapshot (Milton in this prototype), each
+  screening-set substation gets a STATIC tier from its FEMA zone and BFE: HIGH (VE/V, or AE with the NAVD88 BFE
+  above the ESTIMATED switchgear), MEDIUM (AE, A, AO, AH), LOW otherwise. STATIC rows are never compared with the
+  threshold; they route to P2's judgment (JUDGMENT), so FR22 reports how many route there rather than a precision
+  or recall. The old static probabilities stay in the record as tier anchors.
 - **Validation is thin.** USGS high-water marks are sparse: the median substation is about 4 km from the nearest
   one. The PLAN rule (any HWM within 500 m above switchgear) covers 2 substations; 1 km and 3 km
   inverse-distance-weighted water surfaces cover 4 and 12 in the screening set. P-Surge recall is 1.0 at every

@@ -280,20 +280,30 @@ with tabs[1]:
         rec_b = pd.DataFrame(rc["substations"])
         sb = est_b.merge(rec_b, on="asset_id")
         src = rc["prob_source"]
-        st.markdown(("Probability :blue-badge[PSURGE] P-Surge as issued, P(surge > "
-                     f"{B['inputs']['psurge_threshold_ft']} ft above ground)" if src == "PSURGE" else
-                     f"Probability :orange-badge[{src}] FEMA zone + BFE fallback") +
-                    f" · Height :orange-badge[ESTIMATED] ground (3DEP) + {C['height_offset_m']} m placeholder offset"
-                    f" · Threshold in force **{rc['threshold_in_force']:.2f}** = {rc['threshold']:.2f} + margin "
-                    f"{rc['margin']:.2f} (raised because height is ESTIMATED)"
-                    " · Flood sensor :gray-badge[BLANK] no historian in the prototype (FR21)")
-        held = sb[(sb["recommendation"] == "WATCH") & sb["above_threshold"]]
-        m1, m2, m3, m4 = st.columns(4)
+        if src == "PSURGE":
+            st.markdown("Probability :blue-badge[PSURGE] P-Surge as issued, P(surge > "
+                        f"{B['inputs']['psurge_threshold_ft']} ft above ground)"
+                        f" · Height :orange-badge[ESTIMATED] ground (3DEP) + {C['height_offset_m']} m placeholder offset"
+                        f" · Threshold in force **{rc['threshold_in_force']:.2f}** = {rc['threshold']:.2f} + margin "
+                        f"{rc['margin']:.2f} (raised because height is ESTIMATED)"
+                        " · Flood sensor :gray-badge[BLANK] no historian in the prototype (FR21)")
+        else:
+            st.markdown(f"Probability :orange-badge[{src}] — no P-Surge snapshot for this advisory, so there is no "
+                        "probability to threshold. Each site gets a **STATIC tier** from its FEMA zone and BFE: **HIGH** "
+                        "(VE/V, or AE with the BFE above the ESTIMATED switchgear), **MEDIUM** (AE, A, AO, AH), **LOW** "
+                        "otherwise, and routes to **P2's judgment**."
+                        f" · Height :orange-badge[ESTIMATED] ground (3DEP) + {C['height_offset_m']} m placeholder offset"
+                        " · Flood sensor :gray-badge[BLANK] no historian in the prototype (FR21)")
+        above = sb["above_threshold"].apply(lambda v: bool(v) if isinstance(v, (bool, int)) else False)
+        held = sb[(sb["recommendation"] == "WATCH") & above]
+        n_judg = int((sb["recommendation"] == "JUDGMENT").sum())
+        m1, m2, m3, m4, m5 = st.columns(5)
         m1.metric("Screening set", len(sb), help="Substations in FEMA zones " + ", ".join(C["screening_zones"]))
         m2.metric("🔴 DE-ENERGIZE", int((sb["recommendation"] == "DE-ENERGIZE").sum()))
         m3.metric("🟡 WATCH: critical load", len(held), help="Above threshold, but a hospital or pumping station on the "
                                                              "PLACEHOLDER FEED has unknown backup (A18)")
         m4.metric("🟡 WATCH: below threshold", int((sb["recommendation"] == "WATCH").sum()) - len(held))
+        m5.metric("⚪ JUDGMENT (STATIC)", n_judg, help="No P-Surge snapshot: STATIC tier from FEMA zone and BFE; P2 decides")
         mc1 = mc2 = st.container()
         with mc1:
             show_zones = st.toggle("FEMA flood zones", value=True)
@@ -310,25 +320,30 @@ with tabs[1]:
                 h["txt"] = [f"HWM {w:.2f} m NAVD88" for w in h["water_elev_m_navd88"]]
                 layers.append(pdk.Layer("ScatterplotLayer", h, get_position=["lon", "lat"], get_radius=4, radius_units="'pixels'",
                                         get_fill_color=ui.rgb(ui.SEQ[11], 220), pickable=True))
-            sb["color"] = [ui.rgb(ui.STATUS["critical"]) if r == "DE-ENERGIZE" else ui.rgb(ui.STATUS["warning"]) for r in sb["recommendation"]]
-            sb["txt"] = [f"{n or a} · {r} · p {p:.2f}" for n, a, r, p in zip(sb["name"], sb["asset_id"], sb["recommendation"], sb["prob"])]
+            sb["color"] = [ui.rgb(ui.STATUS["critical"]) if r == "DE-ENERGIZE" else
+                           (ui.rgb(ui.INK["muted"]) if r == "JUDGMENT" else ui.rgb(ui.STATUS["warning"])) for r in sb["recommendation"]]
+            sb["txt"] = [f"{n or a} · {r} · " + (f"STATIC tier {t}" if r == "JUDGMENT" else f"p {p:.2f}")
+                         for n, a, r, p, t in zip(sb["name"], sb["asset_id"], sb["recommendation"], sb["prob"], sb["static_tier"])]
             layers.append(pdk.Layer("ScatterplotLayer", sb, get_position=["lon", "lat"], get_radius=8, radius_units="'pixels'",
                                     get_fill_color="color", stroked=True, get_line_color=[255, 255, 255], line_width_min_pixels=2,
                                     pickable=True))
             st.pydeck_chart(ui.deck(layers, ui.STUDY_VIEW, {"html": "{txt}", "style": ui.TOOLTIP_STYLE}, height=440))
-            st.caption("🔴 DE-ENERGIZE · 🟡 WATCH · blue fill = FEMA special flood hazard area (darker = VE) · dark dots = "
-                       "Ian high-water marks. Hover for values.")
+            st.caption("🔴 DE-ENERGIZE · 🟡 WATCH · ⚪ JUDGMENT (STATIC tier) · blue fill = FEMA special flood hazard area "
+                       "(darker = VE) · dark dots = Ian high-water marks. Hover for values.")
         with mc2:
             sb["rec"] = sb["recommendation"].map(ui.REC_ICON)
-            st.dataframe(sb.sort_values("prob", ascending=False)[["asset_id", "name", "fema_zone", "ground_elev_m",
-                                                                  "switchgear_m_navd88", "prob", "prob_source", "threshold",
-                                                                  "critical_load_check", "rec", "reason"]],
+            cols = ["asset_id", "name", "fema_zone", "ground_elev_m", "switchgear_m_navd88", "prob", "prob_source", "threshold",
+                    "critical_load_check", "rec", "reason"]
+            if n_judg:
+                cols = [c if c != "prob" else "static_tier" for c in cols if c != "threshold"]
+            st.dataframe(sb.sort_values("prob", ascending=False)[cols],
                          hide_index=True, width="stretch", height=440,
                          column_config={"asset_id": "ID", "name": "Substation", "fema_zone": "Zone",
                                         "ground_elev_m": st.column_config.NumberColumn("Ground m", format="%.2f"),
                                         "switchgear_m_navd88": st.column_config.NumberColumn("Switchgear m (ESTIMATED)", format="%.2f"),
                                         "prob": st.column_config.ProgressColumn("P(inundation)", min_value=0.0, max_value=1.0, format="%.2f"),
                                         "prob_source": "Source", "threshold": st.column_config.NumberColumn("Threshold", format="%.2f"),
+                                        "static_tier": "STATIC tier",
                                         "critical_load_check": "Critical load", "rec": "Recommendation", "reason": "Why"})
         st.markdown("#### Sign-off (FR24) — the control room switches in its own systems; the platform never touches SCADA")
         with st.form(f"p2form_{B['record_id']}", clear_on_submit=True):
@@ -363,9 +378,12 @@ with tabs[1]:
                     lab = short.get(tk, lab)
                     for v in ("psurge_screening_set", "static_screening_set"):
                         r = f22["results"][tk][v]
+                        judg = "routes_to_judgment" in r
                         rows.append({"truth": lab, "variant": "P-Surge" if v.startswith("psurge") else "STATIC fallback",
                                      "substations observed": r["with_hwm_observation"], "observed flooded": r["observed_flooded"],
-                                     "flag precision": r["inundation_flag"]["precision"], "flag recall": r["inundation_flag"]["recall"]})
+                                     "flag precision": f"routes to judgment (n={r['routes_to_judgment']})" if judg
+                                     else str(r["inundation_flag"]["precision"]),
+                                     "flag recall": "—" if judg else str(r["inundation_flag"]["recall"])})
                 st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch")
                 st.caption("HWMs are sparse (median substation ~4 km from one), so read each row with its sample size. "
                            "PRD M4 target: precision 0.7, recall 0.8.")
@@ -547,9 +565,15 @@ with tabs[5]:
         for v, vl in [("psurge_screening_set", "P-Surge, screening set"), ("static_screening_set", "STATIC, screening set"),
                       ("psurge_all_substations", "P-Surge, all substations")]:
             r = f22["results"][tk][v]
+            if "routes_to_judgment" in r:
+                rows.append({"Truth": lab, "Variant": vl, "Observed": r["with_hwm_observation"], "Flooded": r["observed_flooded"],
+                             "Flag precision": f"routes to judgment (n={r['routes_to_judgment']})", "Flag recall": "—",
+                             "DE-ENERGIZE precision": "—", "DE-ENERGIZE recall": "—"})
+                continue
             rows.append({"Truth": lab, "Variant": vl, "Observed": r["with_hwm_observation"], "Flooded": r["observed_flooded"],
-                         "Flag precision": r["inundation_flag"]["precision"], "Flag recall": r["inundation_flag"]["recall"],
-                         "DE-ENERGIZE precision": r["de_energize"]["precision"], "DE-ENERGIZE recall": r["de_energize"]["recall"]})
+                         "Flag precision": str(r["inundation_flag"]["precision"]), "Flag recall": str(r["inundation_flag"]["recall"]),
+                         "DE-ENERGIZE precision": str(r["de_energize"]["precision"]),
+                         "DE-ENERGIZE recall": str(r["de_energize"]["recall"])})
     st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch")
 
 

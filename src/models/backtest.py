@@ -9,9 +9,10 @@ FR30  Selection on leave-one-storm-out between the two training storms (models/c
       the GLM. Milton is not an input to selection; it is reported once, as the holdout.
 FR17  Banner flag for the active model, on the holdout: top-N match < banner_topn_match or P90 coverage <
       banner_p90_coverage.
-FR22  Decision B on Ian at the latest advisory at or before T-12h: precision and recall of the inundation
+FR22  Decision B on Ian at the latest advisory at or before T-12h: precision and recall of the P-Surge inundation
       flag and of DE-ENERGIZE against USGS high-water marks (observed flooded = an HWM within
-      fr22_hwm_radius_m whose water surface is above the ESTIMATED switchgear elevation).
+      fr22_hwm_radius_m whose water surface is above the ESTIMATED switchgear elevation). The STATIC
+      variant routes every site to P2's judgment with a tier, so it reports that count, not precision/recall.
 Pairing rule (R5): every advisory is paired with the storm's peak customers out; nothing is interpolated.
 """
 from __future__ import annotations
@@ -169,13 +170,17 @@ def fr22(cfg: dict) -> dict:
             f = flags[v].merge(truth, on="asset_id", how="left")
             obs = f[f["observed"].fillna(False).astype(bool)]
             t = obs["observed_flooded"].astype(bool)
-            out["results"][tkey][v] = {
-                "substations": int(len(f)), "with_hwm_observation": int(len(obs)), "observed_flooded": int(t.sum()),
-                "prob_sources": f["prob_source"].value_counts().to_dict(),
-                "inundation_flag": _pr(obs["above_threshold"].astype(bool), t),
-                "de_energize": _pr(obs["recommendation"].eq("DE-ENERGIZE"), t),
-                "recommendations": f["recommendation"].value_counts().to_dict(),
-            }
+            r = {"substations": int(len(f)), "with_hwm_observation": int(len(obs)), "observed_flooded": int(t.sum()),
+                 "prob_sources": f["prob_source"].value_counts().to_dict(),
+                 "recommendations": f["recommendation"].value_counts().to_dict()}
+            if f["prob_source"].eq("STATIC").all():
+                # STATIC is a tier routed to P2's judgment, not a thresholded probability: no precision/recall.
+                r["routes_to_judgment"] = int(f["recommendation"].eq("JUDGMENT").sum())
+                r["static_tiers"] = f["static_tier"].value_counts().to_dict()
+            else:
+                r["inundation_flag"] = _pr(obs["above_threshold"].astype(bool), t)
+                r["de_energize"] = _pr(obs["recommendation"].eq("DE-ENERGIZE"), t)
+            out["results"][tkey][v] = r
             tables.append(f.assign(variant=v, truth=tkey))
         allsubs = tables[-1]
         missed = allsubs[(allsubs["observed_flooded"] == True) & ~allsubs["fema_zone"].isin(cfg["screening_zones"])]  # noqa: E712
@@ -246,9 +251,11 @@ def write_report(b: dict, cfg: dict) -> None:
     L += ["", "## FR22 — Decision B on Ian", "",
           f"Advisory: {f22['advisory_time']} (latest at or before T-12h). Switchgear height ESTIMATED (ground + "
           f"{f22['height_offset_m']} m); threshold in force {f22['threshold_in_force']} (threshold + margin). "
-          "Flag = probability at or above the threshold in force. DE-ENERGIZE also requires no critical load (hospital "
-          "or pumping station) on the placeholder feed; backup status is unknown, so any such load forces WATCH. "
-          "PRD M4 target: precision 0.7, recall 0.8.", "",
+          "Flag = P-Surge probability at or above the threshold in force. DE-ENERGIZE also requires no critical load "
+          "(hospital or pumping station) on the placeholder feed; backup status is unknown, so any such load forces "
+          "WATCH. PRD M4 target: precision 0.7, recall 0.8. The STATIC fallback is a tier (HIGH / MEDIUM / LOW from "
+          "FEMA zone and BFE), not a probability: every STATIC site routes to P2's judgment, so it has no precision "
+          "or recall.", "",
           "USGS high-water marks are sparse: the median substation is about 4 km from the nearest one. The PLAN rule "
           "(500 m) is the primary truth; 1 km and 3 km inverse-distance-weighted water surfaces are sensitivity checks. "
           "Read every row with its sample size.", ""]
@@ -258,6 +265,10 @@ def write_report(b: dict, cfg: dict) -> None:
               "|---|---|---|---|---|---|---|---|"]
         for v, vlab, _, _ in VARIANTS:
             r = f22["results"][tkey][v]
+            if "routes_to_judgment" in r:
+                L.append(f"| {vlab} | {r['substations']} | {r['with_hwm_observation']} | {r['observed_flooded']} | "
+                         f"routes to judgment (n={r['routes_to_judgment']}) | — | — | — |")
+                continue
             L.append(f"| {vlab} | {r['substations']} | {r['with_hwm_observation']} | {r['observed_flooded']} | "
                      f"{r['inundation_flag']['precision']} | {r['inundation_flag']['recall']} | "
                      f"{r['de_energize']['precision']} | {r['de_energize']['recall']} |")

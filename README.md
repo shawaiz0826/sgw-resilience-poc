@@ -59,7 +59,7 @@ the USGS high-water marks on the map; the FR22 table compares the flags with wha
 | EAGLE-I county outages (training and truth); USGS high-water marks | Feeding substation: PLACEHOLDER FEED (nearest by distance) |
 | FEMA flood zones and BFE; USGS 3DEP elevation | SGW crew-hours, crew size, restoration window, staging sites |
 | OSM substations, HIFLD lines and hospitals, EPA wastewater plants | Hospital backup status (unknown, treated as none); flood sensors (BLANK) |
-| Model backtest on a storm it never saw | STATIC surge probability where no P-Surge grid is loaded (Milton) |
+| Model backtest on a storm it never saw | STATIC tier routed to P2's judgment where no P-Surge grid is loaded (Milton) |
 
 Scope, substitutions and every fallback taken are in [LIMITATIONS.md](docs/LIMITATIONS.md). The per-asset
 ranking is an **exposure ranking, county-validated** only; C1 is validated on one held-out storm.
@@ -71,7 +71,7 @@ ranking is an **exposure ranking, county-validated** only; C1 is validated on on
   1.00, P90 coverage 0.87; LightGBM 0.81 / 0.60 / 0.81; TabPFN v2 benchmark 0.85 / 0.60 / 0.79 (lowest MAE). Built
   with PriorLabs-TabPFN. Between the training storms skill is low (0.09–0.64); two training storms is the main limit.
 - **FR22, Ian T-12h:** P-Surge flags catch every observed flood (recall 1.0) but over-flag (precision 0.2 at the
-  3 km truth radius); the STATIC fallback never reaches the raised threshold (recall 0). High-water marks are
+  3 km truth radius); without P-Surge, sites get a STATIC tier and route to P2's judgment. High-water marks are
   sparse, so read each row with its sample size.
 
 ## Layout

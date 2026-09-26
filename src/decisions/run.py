@@ -93,7 +93,7 @@ def decision_b(storm_id: str, t: pd.Timestamp, cfg: dict) -> dict | None:
               "psurge_snapshot": psurge_files, "psurge_threshold_ft": n_ft if has_ps else None,
               "prob_source_note": "P-Surge as issued" if has_ps else PSURGE_NOT_LOADED}
     est_cols = ["asset_id", "name", "lon", "lat", "fema_zone", "ground_elev_m", "switchgear_m_navd88", "height_source",
-                "height_offset_m", "prob", "prob_source", "prob_basis", "psurge_threshold_ft"]
+                "height_offset_m", "prob", "prob_source", "prob_basis", "psurge_threshold_ft", "static_tier"]
     rec_cols = ["asset_id", "threshold", "above_threshold", "critical_loads", "critical_load_check", "recommendation",
                 "reason", "sensor_value"]
     counts = flags["recommendation"].value_counts().to_dict()

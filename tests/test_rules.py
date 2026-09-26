@@ -68,12 +68,15 @@ def _registry():
     ])
 
 
-def test_static_bump_when_bfe_above_switchgear():
+def test_static_routes_to_judgment_with_tier():
     reg = _registry()
-    f = c5.inundation(reg, None, "x", pd.Timestamp("2024-01-01", tz="UTC"), CFG).set_index("asset_id")
-    assert f.loc["SUB-1", "prob"] == CFG["static_prob"]["AE_bfe_above_switchgear"]  # BFE 3.05 m > 1.0 + 1.0 m
-    assert f.loc["SUB-2", "prob"] == CFG["static_prob"]["AE"]                       # BFE 3.05 m < 5.0 + 1.0 m
-    assert set(f["prob_source"]) == {"STATIC"} and set(f["height_source"]) == {"ESTIMATED"}
+    f = c5.recommend(c5.inundation(reg, None, "x", pd.Timestamp("2024-01-01", tz="UTC"), CFG), reg, CFG).set_index("asset_id")
+    assert f.loc["SUB-1", "static_tier"] == "HIGH"    # AE, BFE 3.05 m above switchgear 1.0 + 1.0 m
+    assert f.loc["SUB-2", "static_tier"] == "MEDIUM"  # plain AE: BFE 3.05 m below switchgear 5.0 + 1.0 m
+    assert set(f["recommendation"]) == {"JUDGMENT"} and set(f["prob_source"]) == {"STATIC"}
+    assert f["threshold"].isna().all() and f["above_threshold"].isna().all()  # STATIC is never thresholded
+    assert all("P2 to decide" in r for r in f["reason"])
+    assert set(f["height_source"]) == {"ESTIMATED"}
 
 
 def test_critical_load_forces_watch():

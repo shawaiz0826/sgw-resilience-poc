@@ -20,7 +20,9 @@ decisionB_threshold: 0.5        # de-energize if P(inundation above switchgear) 
 decisionB_margin: 0.15          # raised threshold while switchgear height is ESTIMATED
 height_offset_m: 1.0            # PLACEHOLDER: switchgear height above ground (ESTIMATED fallback)
 screening_zones: [VE, V, AE, A, AO, AH]
-static_prob:                    # STATIC fallback where no P-Surge snapshot covers the site
+static_prob:                    # STATIC fallback: tier anchors, not thresholds. Without a P-Surge snapshot a site gets a
+                                # tier (HIGH / MEDIUM / LOW) and routes to P2's judgment; these values are never
+                                # compared with the threshold (kept for continuity with the record).
   VE: 0.7
   V: 0.7
   AE_bfe_above_switchgear: 0.5

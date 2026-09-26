@@ -17,7 +17,7 @@ SERIES_LABEL = {"glm": "GLM (active)", "lgbm": "LightGBM", "tabpfn": "TabPFN v2 
 STATUS = {"good": "#0ca30c", "warning": "#fab219", "serious": "#ec835a", "critical": "#d03b3b"}
 INK = {"primary": "#0b0b0b", "secondary": "#52514e", "muted": "#898781", "grid": "#e1e0d9", "axis": "#c3c2b7",
        "surface": "#fcfcfb"}
-REC_ICON = {"DE-ENERGIZE": "🔴 DE-ENERGIZE", "WATCH": "🟡 WATCH"}
+REC_ICON = {"DE-ENERGIZE": "🔴 DE-ENERGIZE", "WATCH": "🟡 WATCH", "JUDGMENT": "⚪ JUDGMENT"}
 
 CARTO_POSITRON = "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
 STUDY_VIEW = pdk.ViewState(latitude=26.72, longitude=-81.95, zoom=8.6, pitch=0)

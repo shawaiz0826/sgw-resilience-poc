@@ -1,12 +1,13 @@
 """C5 — substation inundation flag, Decision B (PRD C5, FR18-FR21). A threshold on a probabilistic input.
 
 - Screening set: substations whose FEMA zone is in config screening_zones (fixed in Phase 0).
-- Probability: P-Surge at the site for the advisory (prob_source=PSURGE) when a snapshot exists; else the
-  STATIC fallback from the FEMA zone, bumped when the NAVD88 BFE is above the switchgear (prob_source=STATIC).
+- Probability: P-Surge at the site for the advisory (prob_source=PSURGE) when a snapshot exists. Without one,
+  STATIC is a tier, not a probability: HIGH (VE/V, or AE with the NAVD88 BFE above switchgear), MEDIUM (AE, A,
+  AO, AH), LOW otherwise; STATIC rows are never thresholded and route to P2's judgment (JUDGMENT).
 - Switchgear height: never in the public registry, so always ESTIMATED = ground (3DEP) + height_offset_m.
   P-Surge is "surge above ground", so the offset maps to the P-Surge threshold at or below it (conservative).
 - Threshold in force = decisionB_threshold + decisionB_margin while the height is ESTIMATED.
-- Recommend DE-ENERGIZE if prob >= threshold and no critical load on the feed is left without backup; the
+- PSURGE rows: DE-ENERGIZE if prob >= threshold and no critical load on the feed is left without backup; the
   prototype knows no backup status, so any hospital or pumping station on the feed forces WATCH (A18).
 Pure functions: config and tables in, DataFrame out.
 """
@@ -43,6 +44,16 @@ def static_probability(row: pd.Series, cfg: dict, switchgear_m: float) -> tuple[
     return sp["other"], "other zone"
 
 
+def static_tier(row: pd.Series, switchgear_m: float) -> str:
+    """STATIC fallback tier from FEMA zone and BFE (not a probability; never thresholded)."""
+    zone, bfe = row["fema_zone"], row.get("bfe_m_navd88")
+    if zone in ("VE", "V") or (zone == "AE" and pd.notna(bfe) and pd.notna(switchgear_m) and bfe > switchgear_m):
+        return "HIGH"
+    if zone in ("AE", "A", "AO", "AH"):
+        return "MEDIUM"
+    return "LOW"
+
+
 def inundation(registry: pd.DataFrame, psurge_sites: pd.DataFrame | None, storm_id: str,
                advisory_time: pd.Timestamp, cfg: dict, screen: bool = True) -> pd.DataFrame:
     """Probability of inundation above switchgear for each substation (screening set by default)."""
@@ -57,16 +68,17 @@ def inundation(registry: pd.DataFrame, psurge_sites: pd.DataFrame | None, storm_
     rows = []
     for _, r in subs.iterrows():
         switchgear = r["ground_elev_m"] + offset if pd.notna(r["ground_elev_m"]) else np.nan
+        tier = None
         if r["asset_id"] in ps.index:
             prob, source, basis = float(ps[r["asset_id"]]), "PSURGE", f"P(surge > {n_ft} ft above ground)"
         else:
-            prob, basis = static_probability(r, cfg, switchgear)
-            source = "STATIC"
+            prob, basis = static_probability(r, cfg, switchgear)  # kept for continuity; not thresholded
+            source, tier = "STATIC", static_tier(r, switchgear)
         rows.append({
             "asset_id": r["asset_id"], "name": r["name"], "lon": r["lon"], "lat": r["lat"], "fema_zone": r["fema_zone"],
             "ground_elev_m": r["ground_elev_m"], "switchgear_m_navd88": round(switchgear, 3) if pd.notna(switchgear) else None,
             "height_source": "ESTIMATED", "height_offset_m": offset, "prob": round(prob, 4), "prob_source": source,
-            "prob_basis": basis, "psurge_threshold_ft": n_ft if source == "PSURGE" else None,
+            "prob_basis": basis, "psurge_threshold_ft": n_ft if source == "PSURGE" else None, "static_tier": tier,
         })
     return pd.DataFrame(rows)
 
@@ -85,11 +97,15 @@ def critical_loads(registry: pd.DataFrame, cfg: dict) -> pd.DataFrame:
 
 
 def recommend(flags: pd.DataFrame, registry: pd.DataFrame, cfg: dict) -> pd.DataFrame:
-    """Add threshold, critical-load check and DE-ENERGIZE / WATCH to the output of inundation()."""
+    """Add threshold, critical-load check and the recommendation to the output of inundation().
+
+    PSURGE rows: DE-ENERGIZE / WATCH against the threshold in force. STATIC rows: JUDGMENT with their tier;
+    the threshold is not applied to them (threshold and above_threshold are None)."""
     crit = critical_loads(registry, cfg)
     out = flags.copy()
-    out["threshold"] = [threshold_in_force(cfg, h) for h in out["height_source"]]
-    out["above_threshold"] = out["prob"] >= out["threshold"]
+    psurge = out["prob_source"].eq("PSURGE")
+    out["threshold"] = [threshold_in_force(cfg, h) if ps_ else None for h, ps_ in zip(out["height_source"], psurge)]
+    out["above_threshold"] = [bool(p >= t) if ps_ else None for p, t, ps_ in zip(out["prob"], out["threshold"], psurge)]
     loads = crit.groupby("feed_asset_id").apply(
         lambda g: [f"{t}:{a}" for t, a in zip(g["type"], g["asset_id"])], include_groups=False)
     out["critical_loads"] = out["asset_id"].map(loads).apply(lambda v: v if isinstance(v, list) else [])
@@ -97,7 +113,11 @@ def recommend(flags: pd.DataFrame, registry: pd.DataFrame, cfg: dict) -> pd.Data
                                           "no critical load on feed")
     rec, reason = [], []
     for _, r in out.iterrows():
-        if not r["above_threshold"]:
+        if r["prob_source"] != "PSURGE":
+            rec.append("JUDGMENT")
+            reason.append(f"STATIC: no P-Surge snapshot for this advisory; tier {r['static_tier']} from FEMA zone and BFE; "
+                          "P2 to decide")
+        elif not r["above_threshold"]:
             rec.append("WATCH")
             reason.append(f"prob {r['prob']:.2f} below threshold {r['threshold']:.2f}")
         elif r["critical_loads"]:

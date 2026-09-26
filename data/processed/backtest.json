@@ -1,5 +1,5 @@
 {
-  "config_version": "v1-aeefd715f473",
+  "config_version": "v1-51dee6f081cb",
   "fr16": {
     "advisory_time": "2024-10-07 00:00:00+00:00",
     "hours_to_landfall": 72.5,
@@ -162,6 +162,10 @@
           "prob_sources": {
             "PSURGE": 25
           },
+          "recommendations": {
+            "DE-ENERGIZE": 14,
+            "WATCH": 11
+          },
           "inundation_flag": {
             "tp": 2,
             "fp": 0,
@@ -177,10 +181,6 @@
             "tn": 0,
             "precision": 1.0,
             "recall": 1.0
-          },
-          "recommendations": {
-            "DE-ENERGIZE": 14,
-            "WATCH": 11
           }
         },
         "static_screening_set": {
@@ -190,24 +190,13 @@
           "prob_sources": {
             "STATIC": 25
           },
-          "inundation_flag": {
-            "tp": 0,
-            "fp": 0,
-            "fn": 2,
-            "tn": 0,
-            "precision": null,
-            "recall": 0.0
-          },
-          "de_energize": {
-            "tp": 0,
-            "fp": 0,
-            "fn": 2,
-            "tn": 0,
-            "precision": null,
-            "recall": 0.0
-          },
           "recommendations": {
-            "WATCH": 25
+            "JUDGMENT": 25
+          },
+          "routes_to_judgment": 25,
+          "static_tiers": {
+            "MEDIUM": 19,
+            "HIGH": 6
           }
         },
         "psurge_all_substations": {
@@ -217,6 +206,10 @@
           "prob_sources": {
             "PSURGE": 64
           },
+          "recommendations": {
+            "WATCH": 43,
+            "DE-ENERGIZE": 21
+          },
           "inundation_flag": {
             "tp": 2,
             "fp": 0,
@@ -232,10 +225,6 @@
             "tn": 0,
             "precision": 1.0,
             "recall": 1.0
-          },
-          "recommendations": {
-            "WATCH": 43,
-            "DE-ENERGIZE": 21
           }
         },
         "flooded_outside_screening_set": []
@@ -247,6 +236,10 @@
           "observed_flooded": 2,
           "prob_sources": {
             "PSURGE": 25
+          },
+          "recommendations": {
+            "DE-ENERGIZE": 14,
+            "WATCH": 11
           },
           "inundation_flag": {
             "tp": 2,
@@ -263,10 +256,6 @@
             "tn": 1,
             "precision": 0.667,
             "recall": 1.0
-          },
-          "recommendations": {
-            "DE-ENERGIZE": 14,
-            "WATCH": 11
           }
         },
         "static_screening_set": {
@@ -276,24 +265,13 @@
           "prob_sources": {
             "STATIC": 25
           },
-          "inundation_flag": {
-            "tp": 0,
-            "fp": 0,
-            "fn": 2,
-            "tn": 2,
-            "precision": null,
-            "recall": 0.0
-          },
-          "de_energize": {
-            "tp": 0,
-            "fp": 0,
-            "fn": 2,
-            "tn": 2,
-            "precision": null,
-            "recall": 0.0
-          },
           "recommendations": {
-            "WATCH": 25
+            "JUDGMENT": 25
+          },
+          "routes_to_judgment": 25,
+          "static_tiers": {
+            "MEDIUM": 19,
+            "HIGH": 6
           }
         },
         "psurge_all_substations": {
@@ -302,6 +280,10 @@
           "observed_flooded": 2,
           "prob_sources": {
             "PSURGE": 64
+          },
+          "recommendations": {
+            "WATCH": 43,
+            "DE-ENERGIZE": 21
           },
           "inundation_flag": {
             "tp": 2,
@@ -318,10 +300,6 @@
             "tn": 3,
             "precision": 0.5,
             "recall": 1.0
-          },
-          "recommendations": {
-            "WATCH": 43,
-            "DE-ENERGIZE": 21
           }
         },
         "flooded_outside_screening_set": []
@@ -333,6 +311,10 @@
           "observed_flooded": 2,
           "prob_sources": {
             "PSURGE": 25
+          },
+          "recommendations": {
+            "DE-ENERGIZE": 14,
+            "WATCH": 11
           },
           "inundation_flag": {
             "tp": 2,
@@ -349,10 +331,6 @@
             "tn": 3,
             "precision": 0.222,
             "recall": 1.0
-          },
-          "recommendations": {
-            "DE-ENERGIZE": 14,
-            "WATCH": 11
           }
         },
         "static_screening_set": {
@@ -362,24 +340,13 @@
           "prob_sources": {
             "STATIC": 25
           },
-          "inundation_flag": {
-            "tp": 0,
-            "fp": 0,
-            "fn": 2,
-            "tn": 10,
-            "precision": null,
-            "recall": 0.0
-          },
-          "de_energize": {
-            "tp": 0,
-            "fp": 0,
-            "fn": 2,
-            "tn": 10,
-            "precision": null,
-            "recall": 0.0
-          },
           "recommendations": {
-            "WATCH": 25
+            "JUDGMENT": 25
+          },
+          "routes_to_judgment": 25,
+          "static_tiers": {
+            "MEDIUM": 19,
+            "HIGH": 6
           }
         },
         "psurge_all_substations": {
@@ -388,6 +355,10 @@
           "observed_flooded": 2,
           "prob_sources": {
             "PSURGE": 64
+          },
+          "recommendations": {
+            "WATCH": 43,
+            "DE-ENERGIZE": 21
           },
           "inundation_flag": {
             "tp": 2,
@@ -404,10 +375,6 @@
             "tn": 11,
             "precision": 0.154,
             "recall": 1.0
-          },
-          "recommendations": {
-            "WATCH": 43,
-            "DE-ENERGIZE": 21
           }
         },
         "flooded_outside_screening_set": []

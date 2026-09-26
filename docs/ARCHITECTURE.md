@@ -72,7 +72,8 @@ crew-hours used, and for Decision B the height source, the probability source an
 2. C2 turns the two zones' P50/P90 into crew-hours and whole crews, and checks each staging site's 64 kt
    probability (Decision A).
 3. C3 applies C1 per 0.1-degree cell and multiplies by static weights; C4 passes substation scores to dependents.
-4. C5 runs when a P-Surge snapshot exists for the advisory, or from T-48h on the STATIC fallback (Decision B).
+4. C5 runs when a P-Surge snapshot exists for the advisory, or from T-48h on the STATIC fallback, where each
+   site gets a tier from FEMA zone and BFE and routes to P2's judgment (Decision B).
 5. Both records are written. Only then can C6 read them.
 
 ## Configuration and model governance
