@@ -71,9 +71,10 @@ post-storm re-scoring (FR31: the Milton backtest is the same computation, run on
   one. The PLAN rule (any HWM within 500 m above switchgear) covers 2 substations; 1 km and 3 km
   inverse-distance-weighted water surfaces cover 4 and 12 in the screening set. P-Surge recall is 1.0 at every
   radius; precision falls to 0.2 at 3 km.
-- **The FEMA screening set misses surge outside mapped zones.** Ian's P-Surge gave >= 0.8 probability of more
-  than 3 ft above ground at several Zone X substations (for example Piney Road, West Cape, Calusa). A FEMA-zone
-  screening set (PRD C5) does not look at them. Phase 0 should screen on P-Surge coverage as well as FEMA zone.
+- **The FEMA screening set misses surge outside mapped zones.** At Ian T-12h, P-Surge put 9 substations outside
+  the screening set at or above the 0.65 threshold, 3 of them in Zone X at >= 0.8 (Piney Road 0.97, SUB-0004 0.89,
+  West Cape 0.89). A FEMA-zone screening set (PRD C5) does not look at them; the P2 screen shows them as hollow
+  rings. Phase 0 should screen on P-Surge coverage as well as FEMA zone.
 
 ## 5. Decision A limits (C2)
 

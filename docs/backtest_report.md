@@ -82,6 +82,22 @@ USGS high-water marks are sparse: the median substation is about 4 km from the n
 | STATIC fallback, screening set | 25 | 12 | 2 | routes to judgment (n=25) | — | — | — |
 | P-Surge, all substations | 64 | 24 | 2 | 0.125 | 1.0 | 0.154 | 1.0 |
 
+### Outside the screening set at Ian T-12h
+
+Substations not in the FEMA-zone screening set whose P-Surge probability is at or above the threshold in force (0.65): 9. Of these, 3 are in Zone X with P-Surge >= 0.8. The screening set (PRD C5) never looks at them; Phase 0 should screen on P-Surge coverage as well as FEMA zone (LIMITATIONS §4).
+
+| Substation | FEMA zone | P-Surge prob | Ground elevation (m NAVD88) |
+|---|---|---|---|
+| Piney Road Substation (SUB-0044) | X | 0.97 | 2.76 |
+| SUB-0004 (SUB-0004) | X | 0.89 | 2.96 |
+| West Cape Substation (SUB-0047) | X | 0.89 | 2.73 |
+| Calusa Substation (SUB-0022) | X | 0.79 | 3.87 |
+| Fort Myers Substation (SUB-0038) | X | 0.74 | 3.58 |
+| Industrial Substation (SUB-0042) | X | 0.70 | 3.40 |
+| Tropic Isle Substation (SUB-0046) | X | 0.70 | 3.63 |
+| Alico Substation (SUB-0028) | X | 0.67 | 4.23 |
+| Cape North Substation (SUB-0055) | X | 0.65 | 2.74 |
+
 ## Pairing rule (R5)
 
 Each advisory is paired with the storm's peak customers out per county (max of the 15-minute EAGLE-I series from landfall - 24 h to + 96 h, net of the first-day median); nothing is interpolated between the 15-minute and 6-hour cadences.

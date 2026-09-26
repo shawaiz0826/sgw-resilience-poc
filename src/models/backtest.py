@@ -188,6 +188,12 @@ def fr22(cfg: dict) -> dict:
     fr = pd.concat(tables, ignore_index=True)
     fr["critical_loads"] = fr["critical_loads"].apply(lambda v: ";".join(v))
     fr.to_parquet(PROCESSED / "fr22_ian.parquet", index=False)
+    # Substations the FEMA-zone screening set never looks at, but P-Surge flags anyway (LIMITATIONS §4).
+    allf = flags["psurge_all_substations"]
+    outside = allf[~allf["fema_zone"].isin(cfg["screening_zones"]) & allf["prob_source"].eq("PSURGE")]
+    above = outside[outside["prob"] >= out["threshold_in_force"]].sort_values("prob", ascending=False)
+    out["outside_screening_above_threshold"] = above[["asset_id", "name", "fema_zone", "prob", "ground_elev_m"]].to_dict(orient="records")
+    out["zone_x_psurge_ge_080"] = int((outside["fema_zone"].eq("X") & (outside["prob"] >= 0.8)).sum())
     return out
 
 
@@ -278,7 +284,16 @@ def write_report(b: dict, cfg: dict) -> None:
             L.append("Observed flooded but outside the FEMA screening set: " + "; ".join(
                 f"{r['asset_id']} {r['name'] or '(unnamed)'} (zone {r['fema_zone']}, P-Surge {r['prob']:.2f})" for r in m) + ".")
         L.append("")
-    L += ["## Pairing rule (R5)", "", "Each advisory is paired with the storm's peak customers out per county "
+    ox = f22["outside_screening_above_threshold"]
+    L += ["### Outside the screening set at Ian T-12h", "",
+          f"Substations not in the FEMA-zone screening set whose P-Surge probability is at or above the threshold in force "
+          f"({f22['threshold_in_force']}): {len(ox)}. Of these, {f22['zone_x_psurge_ge_080']} are in Zone X with P-Surge "
+          ">= 0.8. The screening set (PRD C5) never looks at them; Phase 0 should screen on P-Surge coverage as well as "
+          "FEMA zone (LIMITATIONS §4).", "",
+          "| Substation | FEMA zone | P-Surge prob | Ground elevation (m NAVD88) |", "|---|---|---|---|"]
+    for r in ox:
+        L.append(f"| {r['name'] or r['asset_id']} ({r['asset_id']}) | {r['fema_zone']} | {r['prob']:.2f} | {r['ground_elev_m']:.2f} |")
+    L += ["", "## Pairing rule (R5)", "", "Each advisory is paired with the storm's peak customers out per county "
           "(max of the 15-minute EAGLE-I series from landfall - 24 h to + 96 h, net of the first-day median); nothing is "
           "interpolated between the 15-minute and 6-hour cadences.", ""]
     (ROOT / "docs" / "backtest_report.md").write_text("\n".join(L))

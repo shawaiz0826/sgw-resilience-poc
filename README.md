@@ -70,6 +70,9 @@ ranking is an **exposure ranking, county-validated** only; C1 is validated on on
   (mean Spearman 0.46 vs LightGBM 0.11), and Milton was reported once as a holdout: GLM Spearman 0.90, top-5 match
   1.00, P90 coverage 0.87; LightGBM 0.81 / 0.60 / 0.81; TabPFN v2 benchmark 0.85 / 0.60 / 0.79 (lowest MAE). Built
   with PriorLabs-TabPFN. Between the training storms skill is low (0.09–0.64); two training storms is the main limit.
+- **Outside the screening set:** Ian's P-Surge put >= 0.8 probability of > 3 ft on 3 substations in Zone X that the
+  FEMA screening set never looks at; the prototype surfaces them (P2 toggle), and the recommendation to SGW is to
+  screen on P-Surge coverage as well as FEMA zone.
 - **FR22, Ian T-12h:** P-Surge flags catch every observed flood (recall 1.0) but over-flag (precision 0.2 at the
   3 km truth radius); without P-Surge, sites get a STATIC tier and route to P2's judgment. High-water marks are
   sparse, so read each row with its sample size.

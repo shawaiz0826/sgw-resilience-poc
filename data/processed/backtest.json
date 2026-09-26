@@ -379,7 +379,73 @@
         },
         "flooded_outside_screening_set": []
       }
-    }
+    },
+    "outside_screening_above_threshold": [
+      {
+        "asset_id": "SUB-0044",
+        "name": "Piney Road Substation",
+        "fema_zone": "X",
+        "prob": 0.97,
+        "ground_elev_m": 2.758
+      },
+      {
+        "asset_id": "SUB-0004",
+        "name": "",
+        "fema_zone": "X",
+        "prob": 0.89,
+        "ground_elev_m": 2.957
+      },
+      {
+        "asset_id": "SUB-0047",
+        "name": "West Cape Substation",
+        "fema_zone": "X",
+        "prob": 0.89,
+        "ground_elev_m": 2.734
+      },
+      {
+        "asset_id": "SUB-0022",
+        "name": "Calusa Substation",
+        "fema_zone": "X",
+        "prob": 0.79,
+        "ground_elev_m": 3.872
+      },
+      {
+        "asset_id": "SUB-0038",
+        "name": "Fort Myers Substation",
+        "fema_zone": "X",
+        "prob": 0.74,
+        "ground_elev_m": 3.583
+      },
+      {
+        "asset_id": "SUB-0042",
+        "name": "Industrial Substation",
+        "fema_zone": "X",
+        "prob": 0.7,
+        "ground_elev_m": 3.403
+      },
+      {
+        "asset_id": "SUB-0046",
+        "name": "Tropic Isle Substation",
+        "fema_zone": "X",
+        "prob": 0.7,
+        "ground_elev_m": 3.633
+      },
+      {
+        "asset_id": "SUB-0028",
+        "name": "Alico Substation",
+        "fema_zone": "X",
+        "prob": 0.67,
+        "ground_elev_m": 4.233
+      },
+      {
+        "asset_id": "SUB-0055",
+        "name": "Cape North Substation",
+        "fema_zone": "X",
+        "prob": 0.65,
+        "ground_elev_m": 2.736
+      }
+    ],
+    "zone_x_psurge_ge_080": 3
   },
   "tabpfn": {
     "model": "tabpfn-v2-reg@4972a65a",

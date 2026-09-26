@@ -21,6 +21,7 @@ import streamlit as st  # noqa: E402
 
 import ui  # noqa: E402
 from src.config import load_config  # noqa: E402
+from src.decisions import c5_inundation as c5  # noqa: E402
 from src.decisions.common import EXPOSURE_LABEL, UNITS, advisories  # noqa: E402
 from src.decisions.run import replay, run  # noqa: E402
 from src.llm import prompts, provider, qa, template  # noqa: E402
@@ -308,6 +309,8 @@ with tabs[1]:
         with mc1:
             show_zones = st.toggle("FEMA flood zones", value=True)
             show_hwm = st.toggle("USGS high-water marks (Ian, observed)", value=(storm == "ian"), disabled=(storm != "ian"))
+            show_out = st.toggle("Show substations outside the screening set with P-Surge above threshold",
+                                 value=(src == "PSURGE"), disabled=(src != "PSURGE"))
             layers = []
             if show_zones:
                 zgeo = load_geo("flood_sfha")
@@ -327,9 +330,27 @@ with tabs[1]:
             layers.append(pdk.Layer("ScatterplotLayer", sb, get_position=["lon", "lat"], get_radius=8, radius_units="'pixels'",
                                     get_fill_color="color", stroked=True, get_line_color=[255, 255, 255], line_width_min_pixels=2,
                                     pickable=True))
+            ox = pd.DataFrame()
+            if show_out and src == "PSURGE":
+                allf = c5.inundation(load_parquet("registry"), load_parquet("psurge_sites"), storm, t, C, screen=False)
+                ox = allf[~allf["fema_zone"].isin(C["screening_zones"]) & allf["prob_source"].eq("PSURGE")
+                          & (allf["prob"] >= rc["threshold_in_force"])].sort_values("prob", ascending=False).copy()
+                ox["txt"] = [f"{n or a} · zone {z} · P-Surge {p:.2f} · outside the screening set"
+                             for n, a, z, p in zip(ox["name"], ox["asset_id"], ox["fema_zone"], ox["prob"])]
+                layers.append(pdk.Layer("ScatterplotLayer", ox, get_position=["lon", "lat"], get_radius=9, radius_units="'pixels'",
+                                        filled=False, stroked=True, get_line_color=ui.rgb(ui.INK["primary"]),
+                                        line_width_min_pixels=3, pickable=True))
             st.pydeck_chart(ui.deck(layers, ui.STUDY_VIEW, {"html": "{txt}", "style": ui.TOOLTIP_STYLE}, height=440))
-            st.caption("🔴 DE-ENERGIZE · 🟡 WATCH · ⚪ JUDGMENT (STATIC tier) · blue fill = FEMA special flood hazard area "
-                       "(darker = VE) · dark dots = Ian high-water marks. Hover for values.")
+            st.caption("🔴 DE-ENERGIZE · 🟡 WATCH · ⚪ JUDGMENT (STATIC tier) · ◯ hollow ring = outside the screening set, "
+                       "P-Surge above threshold · blue fill = FEMA special flood hazard area (darker = VE) · dark dots = "
+                       "Ian high-water marks. Hover for values.")
+            if len(ox):
+                st.caption(f"◯ {len(ox)} substation(s): not in the FEMA-zone screening set; P-Surge flags them anyway. "
+                           "Phase 0 should screen on P-Surge coverage as well as FEMA zone (LIMITATIONS §4).")
+                st.dataframe(ox[["asset_id", "name", "fema_zone", "prob", "ground_elev_m"]], hide_index=True, width="stretch",
+                             column_config={"asset_id": "ID", "name": "Substation", "fema_zone": "Zone",
+                                            "prob": st.column_config.NumberColumn("P-Surge", format="%.2f"),
+                                            "ground_elev_m": st.column_config.NumberColumn("Ground m", format="%.2f")})
         with mc2:
             sb["rec"] = sb["recommendation"].map(ui.REC_ICON)
             cols = ["asset_id", "name", "fema_zone", "ground_elev_m", "switchgear_m_navd88", "prob", "prob_source", "threshold",
