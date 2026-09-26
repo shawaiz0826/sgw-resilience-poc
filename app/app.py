@@ -31,6 +31,13 @@ from src.pull.common import PROCESSED, STORMS  # noqa: E402
 from src.store import record  # noqa: E402
 
 st.set_page_config(page_title="SGW Storm Decision Support (POC)", page_icon="🌀", layout="wide")
+st.markdown("""<style>
+.block-container {padding-top: 1.6rem; padding-bottom: 3rem; max-width: 1480px;}
+h2 {font-size: 1.65rem !important; padding-bottom: 0.1rem !important;}
+[data-testid="stMetricValue"] {font-size: 1.9rem;}
+[data-testid="stMetricLabel"] p {font-size: 0.85rem;}
+[data-testid="stSidebar"] .stButton button {justify-content: flex-start; font-size: 0.85rem; padding: 0.2rem 0.6rem;}
+</style>""", unsafe_allow_html=True)
 
 STORM_OPTIONS = {
     "milton": "Milton 2024 (held out)",
@@ -97,6 +104,20 @@ def actions_for(record_id: str) -> list[dict]:
 
 
 # ---------------------------------------------------------------- sidebar
+DEMO_MOMENTS = {  # label -> (storm, latest advisory at or before T-lead); open the tab named in the label
+    "A · Milton T-72h — mutual aid (P1)": ("milton", 72),
+    "Displacement · Ian T-25h (P1)": ("ian", 25),
+    "B · Ian T-13h — de-energize (P2)": ("ian", 12),
+    "STATIC tiers · Milton T-12h (P2)": ("milton", 12),
+}
+
+
+def _jump(j_storm: str, lead_h: float) -> None:
+    a = advisories(j_storm)
+    st.session_state["storm"] = j_storm
+    st.session_state[f"adv_{j_storm}"] = a[a["hours_to_landfall"] >= lead_h]["advisory_time"].max().isoformat()
+
+
 C = cfg()
 with st.sidebar:
     st.markdown("### 🌀 SGW Storm Decision Support")
@@ -123,6 +144,9 @@ with st.sidebar:
     bt = backtest()["fr16"][kind]
     banner_on = bt["top_n_match"] < C["banner_topn_match"] or bt["p90_coverage"] < C["banner_p90_coverage"]
     st.markdown("**Confidence banner** " + (":red-badge[ON]" if banner_on else ":green-badge[off]"))
+    st.markdown("**Jump to a demo moment**")
+    for label, (j_storm, j_lead) in DEMO_MOMENTS.items():
+        st.button(label, on_click=_jump, args=(j_storm, j_lead), width="stretch", key=f"jump_{label}")
     st.caption("**Data vintage** — substations: OSM 2026-09-26 · lines: HIFLD 2015–17 (deprecated) · hospitals: HIFLD "
                "2013–14 · WWTP: EPA FRS · flood zones: FEMA NFHL (Esri copy) · outages: EAGLE-I 2022–24 · elevation: "
                "USGS 3DEP · wind: NHC 5km · surge: NHC P-Surge (Ian only)")
@@ -151,28 +175,30 @@ with tabs[0]:
                  f"{banner['targets']['top_n_match']:.2f}), P90 coverage {banner['p90_coverage']:.2f} (target "
                  f"{banner['targets']['p90_coverage']:.2f}). **Decide on judgment.** (FR17)", icon=":material/warning:")
     else:
-        st.success(f"Confidence banner **off** — model `{A['model_version']}` met its targets on held-out "
-                   f"{banner['held_out_storm'].title()}: top-5 match {banner['top_n_match']:.2f} ≥ "
-                   f"{banner['targets']['top_n_match']:.2f}, P90 coverage {banner['p90_coverage']:.2f} ≥ "
-                   f"{banner['targets']['p90_coverage']:.2f}. (FR17)", icon=":material/check_circle:")
+        st.success(f"Confidence banner **off** — targets met on held-out {banner['held_out_storm'].title()}: top-5 "
+                   f"{banner['top_n_match']:.2f} ≥ {banner['targets']['top_n_match']:.2f} · P90 coverage "
+                   f"{banner['p90_coverage']:.2f} ≥ {banner['targets']['p90_coverage']:.2f} (FR17)",
+                   icon=":material/check_circle:")
 
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("Mutual aid request", f"{plan['mutual_aid_crews']:,} crews", help=plan["formula"])
     c2.metric("Workers", f"{plan['mutual_aid_workers']:,}", help=f"crew size {plan['crew_size']} (PLACEHOLDER)")
     c3.metric("P90 crew-hours (Lee + Charlotte)", ui.fmt(plan["total_crew_hours_p90"]))
-    c4.metric("If sized on P50", f"{plan['mutual_aid_crews_if_p50']:,} crews")
+    c4.metric("Same rule on P50", f"{plan['mutual_aid_crews_if_p50']:,} crews", help="For comparison: the request is sized on P90")
     st.caption(scale_line(plan), help=plan.get("calibration_note"))
 
     with st.container(border=True):
         cc1, cc2 = st.columns([1, 2])
-        default_crew = float(C["own_crew_hours_default"])
-        entered = cc1.number_input("SGW's own available crew-hours", min_value=0.0, step=1000.0,
-                                   value=float(A["crew_hours_entered"]), key=f"crew_in_{storm}_{t_iso}")
-        cc2.markdown(":violet-badge[PLACEHOLDER] typed by P1 at T-72h and revised at T-48h (FR11); the crew roster "
-                     "replaces the typing in Phase 2. Changing it reruns Decision A and writes a new record.  \n"
-                     f"Current source: **{A['crew_hours_source']}**. Restoration window {plan['restoration_days']:.0f} days, "
-                     f"crew size {plan['crew_size']}, {plan['restoration_rate']:.0f} customers per worker-day — all config values.")
-        if entered != float(A["crew_hours_entered"]):
+        default_crew = int(C["own_crew_hours_default"])
+        entered = cc1.number_input("SGW's own available crew-hours", min_value=0, step=1000, format="%d",
+                                   value=int(A["crew_hours_entered"]), key=f"crew_in_{storm}_{t_iso}")
+        src_badge = (":violet-badge[PLACEHOLDER] default value." if "PLACEHOLDER" in A["crew_hours_source"]
+                     else ":blue-badge[ENTERED BY P1]")
+        cc2.markdown(f"{src_badge} P1 types it at T-72h and revises it at T-48h (FR11); "
+                     "changing it reruns Decision A and writes a new record.  \n"
+                     f"Config: {plan['restoration_days']:.0f}-day window · crew size {plan['crew_size']} · "
+                     f"{plan['restoration_rate']:.0f} customers per worker-day (all placeholders).")
+        if entered != int(A["crew_hours_entered"]):
             st.session_state[f"crew_{storm}_{t_iso}"] = None if entered == default_crew else entered
             st.rerun()
 
@@ -218,7 +244,7 @@ with tabs[0]:
         zp["assigned"] = [f"{'⚠️ DISPLACED → ' if d else ''}{s or 'none below threshold: P1 decides'}"
                           for d, s in zip(zp["displaced"], zp["assigned_site_name"])]
         zp["mapped"] = [f"{n} ({p:.2f})" for n, p in zip(zp["mapped_site_name"], zp["mapped_site_p64"])]
-        st.dataframe(zp[["zone_name", "assigned", "customers_out_p50", "customers_out_p90", "crew_hours_p90", "mapped"]],
+        st.dataframe(zp[["zone_name", "assigned", "customers_out_p50", "customers_out_p90", "mapped"]],
                      hide_index=True, width="stretch",
                      column_config={"zone_name": "Zone", "customers_out_p50": st.column_config.NumberColumn("P50 out", format="%,d"),
                                     "customers_out_p90": st.column_config.NumberColumn("P90 out", format="%,d"),
@@ -226,7 +252,8 @@ with tabs[0]:
                                     "crew_hours_p90": st.column_config.NumberColumn("P90 crew-h", format="%,d"),
                                     "mapped": "Mapped site (p64)", "assigned": "Assigned site"})
         for z in plan["zones"]:
-            st.caption(f"{z['zone_name']}: {z['note']}")
+            if z.get("displaced"):
+                st.caption(f"⚠️ {z['zone_name']}: {z['note']}")
         st.caption(f":violet-badge[PLACEHOLDER] staging site list (the real list lives in SGW's storm plan, A19). "
                    f"Site displaced if its 64 kt probability > {C['site_wind_threshold']:.2f}.")
         st.markdown("**County estimates** (C1, P10 / P50 / P90 customers out) — zones and the statewide top 8")
@@ -250,8 +277,8 @@ with tabs[0]:
                 payload["mutual_aid_crews"] = st.number_input("Crews to request", min_value=0, value=int(plan["mutual_aid_crews"]), step=50)
                 payload["staging_note"] = st.text_input("Staging change (optional)")
             if choice == "Override":
-                payload["plan_as_decided"] = st.text_area("Plan as decided")
-            reason = st.text_area("Reason" + (" (required)" if choice != "Approve" else " (optional)"))
+                payload["plan_as_decided"] = st.text_area("Plan as decided", height=80)
+            reason = st.text_area("Reason" + (" (required)" if choice != "Approve" else " (optional)"), height=80)
             if st.form_submit_button(f"{choice} and write to the record", type="primary"):
                 try:
                     record.add_action(conn(), choice.upper(), actor, A["record_id"], reason or None, payload or None)
@@ -278,13 +305,7 @@ with tabs[1]:
         st.info(f"Decision B does not run for this advisory: no P-Surge grid is loaded and it is before T-"
                 f"{C['decisionB_starts_hours']}h (the watch window). P2 sees nothing from C5. Move the advisory slider "
                 "closer to landfall, or pick Ian (real P-Surge).", icon=":material/schedule:")
-
-        def _jump_to_ian_t12():
-            a_ian = advisories("ian")
-            st.session_state["storm"] = "ian"
-            st.session_state["adv_ian"] = a_ian[a_ian["hours_to_landfall"] >= 12]["advisory_time"].max().isoformat()
-
-        st.button("Jump to Ian T-13h", on_click=_jump_to_ian_t12, icon=":material/fast_forward:")
+        st.button("Jump to Ian T-13h", on_click=_jump, args=("ian", 12), icon=":material/fast_forward:")
     else:
         rc = B["recommendation"]
         est_b = pd.DataFrame(B["estimates"]["substations"])
@@ -305,82 +326,80 @@ with tabs[1]:
                         "otherwise, and routes to **P2's judgment**."
                         f" · Height :orange-badge[ESTIMATED] ground (3DEP) + {C['height_offset_m']} m placeholder offset"
                         " · Flood sensor :gray-badge[BLANK] no historian in the prototype (FR21)")
-        held = sb[sb["escalation"].fillna(False).astype(bool)]
+        esc = sb["escalation"].fillna(False).astype(bool)
         n_judg = int((sb["recommendation"] == "JUDGMENT").sum())
+        n_de = int((sb["recommendation"] == "DE-ENERGIZE").sum())
         m1, m2, m3, m4, m5 = st.columns(5)
         m1.metric("Screening set", len(sb), help="Substations in FEMA zones " + ", ".join(C["screening_zones"]))
-        m2.metric("🔴 DE-ENERGIZE", int((sb["recommendation"] == "DE-ENERGIZE").sum()))
-        m3.metric("🟠 ESCALATE: confirm backup", len(held), help="Above threshold, held on WATCH: a hospital or pumping "
-                                                                 "station on the PLACEHOLDER FEED has unknown backup (A18). "
-                                                                 "Confirm its backup before de-energizing.")
-        m4.metric("🟡 WATCH: below threshold", int((sb["recommendation"] == "WATCH").sum()) - len(held))
-        m5.metric("⚪ JUDGMENT (STATIC)", n_judg, help="No P-Surge snapshot: STATIC tier from FEMA zone and BFE; P2 decides")
-        mc1 = mc2 = st.container()
-        with mc1:
-            show_zones = st.toggle("FEMA flood zones", value=True)
-            show_hwm = st.toggle("USGS high-water marks (Ian, observed)", value=(storm == "ian"), disabled=(storm != "ian"))
-            show_out = st.toggle("Show substations outside the screening set with P-Surge above threshold",
-                                 value=(src == "PSURGE"), disabled=(src != "PSURGE"))
-            layers = []
-            if show_zones:
-                zgeo = load_geo("flood_sfha")
-                for f in zgeo["features"]:
-                    z = f["properties"]["FLD_ZONE"]
-                    f["properties"]["fill"] = ui.rgb(ui.SEQ[5] if z == "VE" else ui.SEQ[2], 90)
-                layers.append(pdk.Layer("GeoJsonLayer", zgeo, filled=True, stroked=False, get_fill_color="properties.fill"))
-            if show_hwm and storm == "ian":
-                h = load_parquet("hwm_ian").copy()
-                h["txt"] = [f"HWM {w:.2f} m NAVD88" for w in h["water_elev_m_navd88"]]
-                layers.append(pdk.Layer("ScatterplotLayer", h, get_position=["lon", "lat"], get_radius=4, radius_units="'pixels'",
-                                        get_fill_color=ui.rgb(ui.SEQ[11], 220), pickable=True))
-            esc = sb["escalation"].fillna(False).astype(bool)
-            sb["color"] = [ui.rgb(ui.STATUS["critical"]) if r == "DE-ENERGIZE" else ui.rgb(ui.STATUS["serious"]) if e else
-                           (ui.rgb(ui.INK["muted"]) if r == "JUDGMENT" else ui.rgb(ui.STATUS["warning"]))
-                           for r, e in zip(sb["recommendation"], esc)]
-            sb["txt"] = [f"{n or a} · {'WATCH · ESCALATE' if e else r} · " + (f"STATIC tier {t}" if r == "JUDGMENT" else f"p {p:.2f}")
-                         for n, a, r, p, t, e in zip(sb["name"], sb["asset_id"], sb["recommendation"], sb["prob"],
-                                                     sb["static_tier"], esc)]
-            layers.append(pdk.Layer("ScatterplotLayer", sb, get_position=["lon", "lat"], get_radius=8, radius_units="'pixels'",
-                                    get_fill_color="color", stroked=True, get_line_color=[255, 255, 255], line_width_min_pixels=2,
-                                    pickable=True))
-            ox = pd.DataFrame()
-            if show_out and src == "PSURGE":
-                allf = c5.inundation(load_parquet("registry"), load_parquet("psurge_sites"), storm, t, C, screen=False)
-                ox = allf[~allf["fema_zone"].isin(C["screening_zones"]) & allf["prob_source"].eq("PSURGE")
-                          & (allf["prob"] >= rc["threshold_in_force"])].sort_values("prob", ascending=False).copy()
-                ox["txt"] = [f"{n or a} · zone {z} · P-Surge {p:.2f} · outside the screening set"
-                             for n, a, z, p in zip(ox["name"], ox["asset_id"], ox["fema_zone"], ox["prob"])]
-                layers.append(pdk.Layer("ScatterplotLayer", ox, get_position=["lon", "lat"], get_radius=9, radius_units="'pixels'",
-                                        filled=False, stroked=True, get_line_color=ui.rgb(ui.INK["primary"]),
-                                        line_width_min_pixels=3, pickable=True))
-            st.pydeck_chart(ui.deck(layers, ui.STUDY_VIEW, {"html": "{txt}", "style": ui.TOOLTIP_STYLE}, height=440))
-            st.caption("🔴 DE-ENERGIZE · 🟠 ESCALATE (WATCH, confirm backup) · 🟡 WATCH · ⚪ JUDGMENT (STATIC tier) · ◯ hollow ring = outside the screening set, "
-                       "P-Surge above threshold · blue fill = FEMA special flood hazard area (darker = VE) · dark dots = "
-                       "Ian high-water marks. Hover for values.")
-            if len(ox):
-                st.caption(f"◯ {len(ox)} substation(s): not in the FEMA-zone screening set; P-Surge flags them anyway. "
-                           "Phase 0 should screen on P-Surge coverage as well as FEMA zone (LIMITATIONS §4).")
-                st.dataframe(ox[["asset_id", "name", "fema_zone", "prob", "ground_elev_m"]], hide_index=True, width="stretch",
-                             column_config={"asset_id": "ID", "name": "Substation", "fema_zone": "Zone",
-                                            "prob": st.column_config.NumberColumn("P-Surge", format="%.2f"),
-                                            "ground_elev_m": st.column_config.NumberColumn("Ground m", format="%.2f")})
-        with mc2:
-            sb["rec"] = ["🟠 WATCH · ESCALATE" if e else ui.REC_ICON.get(r, r) for r, e in
-                         zip(sb["recommendation"], sb["escalation"].fillna(False).astype(bool))]
-            cols = ["asset_id", "name", "fema_zone", "ground_elev_m", "switchgear_m_navd88", "prob", "prob_source", "threshold",
-                    "critical_load_check", "rec", "reason"]
-            if n_judg:
-                cols = [c if c != "prob" else "static_tier" for c in cols if c != "threshold"]
-            st.dataframe(sb.sort_values("prob", ascending=False)[cols],
-                         hide_index=True, width="stretch", height=440,
+        m2.metric("🔴 De-energize", n_de, help="P-Surge probability at or above the threshold in force; no critical load on the feed")
+        m3.metric("🟠 Escalate", int(esc.sum()), help="ESCALATE: confirm backup. Above threshold, held on WATCH: a hospital "
+                                                      "or pumping station on the PLACEHOLDER FEED has unknown backup (A18). "
+                                                      "Confirm its backup before de-energizing.")
+        m4.metric("🟡 Watch", int((sb["recommendation"] == "WATCH").sum()) - int(esc.sum()), help="Below the threshold in force")
+        m5.metric("⚪ Judgment", n_judg, help="JUDGMENT (STATIC): no P-Surge snapshot, so a STATIC tier from FEMA zone and "
+                                             "BFE routes the site to P2's judgment")
+        t1, t2, t3 = st.columns([0.8, 1.1, 1.6])
+        show_zones = t1.toggle("FEMA flood zones", value=True)
+        show_hwm = t2.toggle("USGS high-water marks (Ian, observed)", value=(storm == "ian"), disabled=(storm != "ian"))
+        show_out = t3.toggle("Show substations outside the screening set with P-Surge above threshold",
+                             value=(src == "PSURGE"), disabled=(src != "PSURGE"))
+        layers = []
+        if show_zones:
+            zgeo = load_geo("flood_sfha")
+            for f in zgeo["features"]:
+                z = f["properties"]["FLD_ZONE"]
+                f["properties"]["fill"] = ui.rgb(ui.SEQ[5] if z == "VE" else ui.SEQ[2], 90)
+            layers.append(pdk.Layer("GeoJsonLayer", zgeo, filled=True, stroked=False, get_fill_color="properties.fill"))
+        if show_hwm and storm == "ian":
+            h = load_parquet("hwm_ian").copy()
+            h["txt"] = [f"HWM {w:.2f} m NAVD88" for w in h["water_elev_m_navd88"]]
+            layers.append(pdk.Layer("ScatterplotLayer", h, get_position=["lon", "lat"], get_radius=4, radius_units="'pixels'",
+                                    get_fill_color=ui.rgb(ui.SEQ[11], 220), pickable=True))
+        sb["color"] = [ui.rgb(ui.STATUS["critical"]) if r == "DE-ENERGIZE" else ui.rgb(ui.STATUS["serious"]) if e else
+                       (ui.rgb(ui.INK["muted"]) if r == "JUDGMENT" else ui.rgb(ui.STATUS["warning"]))
+                       for r, e in zip(sb["recommendation"], esc)]
+        sb["txt"] = [f"{n or a} · {'WATCH · ESCALATE' if e else r} · " + (f"STATIC tier {t_}" if r == "JUDGMENT" else f"p {p:.2f}")
+                     for n, a, r, p, t_, e in zip(sb["name"], sb["asset_id"], sb["recommendation"], sb["prob"],
+                                                  sb["static_tier"], esc)]
+        layers.append(pdk.Layer("ScatterplotLayer", sb, get_position=["lon", "lat"], get_radius=8, radius_units="'pixels'",
+                                get_fill_color="color", stroked=True, get_line_color=[255, 255, 255], line_width_min_pixels=2,
+                                pickable=True))
+        ox = pd.DataFrame()
+        if show_out and src == "PSURGE":
+            allf = c5.inundation(load_parquet("registry"), load_parquet("psurge_sites"), storm, t, C, screen=False)
+            ox = allf[~allf["fema_zone"].isin(C["screening_zones"]) & allf["prob_source"].eq("PSURGE")
+                      & (allf["prob"] >= rc["threshold_in_force"])].sort_values("prob", ascending=False).copy()
+            ox["txt"] = [f"{n or a} · zone {z} · P-Surge {p:.2f} · outside the screening set"
+                         for n, a, z, p in zip(ox["name"], ox["asset_id"], ox["fema_zone"], ox["prob"])]
+            layers.append(pdk.Layer("ScatterplotLayer", ox, get_position=["lon", "lat"], get_radius=9, radius_units="'pixels'",
+                                    filled=False, stroked=True, get_line_color=ui.rgb(ui.INK["primary"]),
+                                    line_width_min_pixels=3, pickable=True))
+        st.pydeck_chart(ui.deck(layers, ui.STUDY_VIEW, {"html": "{txt}", "style": ui.TOOLTIP_STYLE}, height=440))
+        st.caption("🔴 de-energize · 🟠 escalate (WATCH, confirm backup) · 🟡 watch · ⚪ judgment (STATIC tier) · ◯ outside the "
+                   "screening set, P-Surge above threshold · blue fill = FEMA flood zone (darker = VE) · dark dots = Ian "
+                   "high-water marks. Hover for values.")
+        sb["rec"] = ["🟠 WATCH · ESCALATE" if e else ui.REC_ICON.get(r, r) for r, e in zip(sb["recommendation"], esc)]
+        order = {"DE-ENERGIZE": 0, "WATCH": 2, "JUDGMENT": 3}
+        sb["_o"] = [1 if e else order.get(r, 4) for r, e in zip(sb["recommendation"], esc)]
+        lead = "static_tier" if n_judg else "prob"
+        st.dataframe(sb.sort_values(["_o", "prob"], ascending=[True, False])[
+                         ["rec", "asset_id", "name", lead, "fema_zone", "switchgear_m_navd88", "critical_load_check", "reason"]],
+                     hide_index=True, width="stretch", height=420,
+                     column_config={"rec": "Recommendation", "asset_id": "ID", "name": "Substation", "fema_zone": "Zone",
+                                    "prob": st.column_config.ProgressColumn("P(inundation)", min_value=0.0, max_value=1.0, format="%.2f"),
+                                    "static_tier": "STATIC tier",
+                                    "switchgear_m_navd88": st.column_config.NumberColumn("Switchgear m (ESTIMATED)", format="%.2f"),
+                                    "critical_load_check": "Critical load", "reason": "Why"})
+        if len(ox):
+            st.markdown(f"**◯ Outside the screening set — P-Surge above threshold ({len(ox)})**")
+            st.caption("Not in the FEMA-zone screening set; P-Surge flags them anyway. Phase 0 should screen on P-Surge "
+                       "coverage as well as FEMA zone (LIMITATIONS §4).")
+            st.dataframe(ox[["asset_id", "name", "fema_zone", "prob", "ground_elev_m"]], hide_index=True, width="stretch",
                          column_config={"asset_id": "ID", "name": "Substation", "fema_zone": "Zone",
-                                        "ground_elev_m": st.column_config.NumberColumn("Ground m", format="%.2f"),
-                                        "switchgear_m_navd88": st.column_config.NumberColumn("Switchgear m (ESTIMATED)", format="%.2f"),
-                                        "prob": st.column_config.ProgressColumn("P(inundation)", min_value=0.0, max_value=1.0, format="%.2f"),
-                                        "prob_source": "Source", "threshold": st.column_config.NumberColumn("Threshold", format="%.2f"),
-                                        "static_tier": "STATIC tier",
-                                        "critical_load_check": "Critical load", "rec": "Recommendation", "reason": "Why"})
-        st.markdown("#### Sign-off (FR24) — the control room switches in its own systems; the platform never touches SCADA")
+                                        "prob": st.column_config.NumberColumn("P-Surge", format="%.2f"),
+                                        "ground_elev_m": st.column_config.NumberColumn("Ground m", format="%.2f")})
+        st.markdown("#### Sign-off (FR24)")
+        st.caption("P2 signs off or declines here; the control room switches in its own systems. The platform never touches SCADA.")
         with st.form(f"p2form_{B['record_id']}", clear_on_submit=True):
             opts = sb["asset_id"].tolist()
             picked = st.multiselect("Substations", opts, format_func=lambda a: f"{a} · {sb.set_index('asset_id').loc[a, 'name'] or ''} · "
@@ -617,7 +636,12 @@ with tabs[5]:
 with tabs[6]:
     st.markdown("#### Decision record (FR25) — append-only; every row replays exactly")
     recs = record.list_records(conn())
-    st.dataframe(recs, hide_index=True, width="stretch", height=260)
+    st.dataframe(recs[["record_id", "decision", "storm_id", "advisory_time", "status", "output_hash", "config_version",
+                       "model_version", "created_at"]], hide_index=True, width="stretch",
+                 height=min(38 + 35 * max(len(recs), 1), 300),
+                 column_config={"record_id": "Record", "decision": "Decision", "storm_id": "Storm",
+                                "advisory_time": "Advisory", "status": "Status", "output_hash": "Output hash",
+                                "config_version": "Config", "model_version": "Model", "created_at": "Written (UTC)"})
     if len(recs):
         rid = st.selectbox("Record", recs["record_id"].tolist(),
                            index=recs["record_id"].tolist().index(A["record_id"]) if A["record_id"] in set(recs["record_id"]) else 0)
