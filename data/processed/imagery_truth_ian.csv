@@ -1,0 +1,35 @@
+asset_id,name,lon,lat,fema_zone,flooded,note,lookup
+SUB-0001,Florida Power & Light PG1,-82.0466749,26.933532,AE,,screening set,https://storms.ngs.noaa.gov/storms/ian/index.html#17/26.93353/-82.04667
+SUB-0004,,-81.7821757,26.6948405,X,,outside screening set; P-Surge 0.89 at Ian T-12h,https://storms.ngs.noaa.gov/storms/ian/index.html#17/26.69484/-81.78218
+SUB-0007,Sanibel Substation,-82.1491951,26.4636718,AE,,screening set,https://storms.ngs.noaa.gov/storms/ian/index.html#17/26.46367/-82.14920
+SUB-0015,Iona Substation,-81.9436451,26.4865727,AE,,screening set,https://storms.ngs.noaa.gov/storms/ian/index.html#17/26.48657/-81.94365
+SUB-0017,Hanson Substation,-81.8483941,26.6221829,AH,,screening set,https://storms.ngs.noaa.gov/storms/ian/index.html#17/26.62218/-81.84839
+SUB-0020,,-81.7792333,26.6968684,AE,,screening set,https://storms.ngs.noaa.gov/storms/ian/index.html#17/26.69687/-81.77923
+SUB-0021,Fort Myers Switchyard,-81.7803058,26.6989716,AE,,screening set,https://storms.ngs.noaa.gov/storms/ian/index.html#17/26.69897/-81.78031
+SUB-0022,Calusa Substation,-81.7782368,26.7191572,X,,outside screening set; P-Surge 0.79 at Ian T-12h,https://storms.ngs.noaa.gov/storms/ian/index.html#17/26.71916/-81.77824
+SUB-0024,,-81.7840774,26.7117856,AE,,screening set,https://storms.ngs.noaa.gov/storms/ian/index.html#17/26.71179/-81.78408
+SUB-0026,Aqualinda Substation,-82.01671,26.5633031,AE,,screening set,https://storms.ngs.noaa.gov/storms/ian/index.html#17/26.56330/-82.01671
+SUB-0027,Estero Substation,-81.8339501,26.4424931,AE,,screening set,https://storms.ngs.noaa.gov/storms/ian/index.html#17/26.44249/-81.83395
+SUB-0028,Alico Substation,-81.8290195,26.4953887,X,,outside screening set; P-Surge 0.67 at Ian T-12h,https://storms.ngs.noaa.gov/storms/ian/index.html#17/26.49539/-81.82902
+SUB-0030,,-82.2982153,26.8876404,AE,,screening set,https://storms.ngs.noaa.gov/storms/ian/index.html#17/26.88764/-82.29822
+SUB-0036,Metro Substation,-81.8479546,26.5714505,AH,,screening set,https://storms.ngs.noaa.gov/storms/ian/index.html#17/26.57145/-81.84795
+SUB-0038,Fort Myers Substation,-81.8654407,26.6420056,X,,outside screening set; P-Surge 0.74 at Ian T-12h,https://storms.ngs.noaa.gov/storms/ian/index.html#17/26.64201/-81.86544
+SUB-0040,Cape Coral Substation,-81.9749893,26.5770291,AE,,screening set,https://storms.ngs.noaa.gov/storms/ian/index.html#17/26.57703/-81.97499
+SUB-0041,Everest Substation,-81.9346938,26.6060461,AE,,screening set,https://storms.ngs.noaa.gov/storms/ian/index.html#17/26.60605/-81.93469
+SUB-0042,Industrial Substation,-81.9445091,26.6376397,X,,outside screening set; P-Surge 0.70 at Ian T-12h,https://storms.ngs.noaa.gov/storms/ian/index.html#17/26.63764/-81.94451
+SUB-0043,Pine Island Substation,-82.0930875,26.5631746,AE,,screening set,https://storms.ngs.noaa.gov/storms/ian/index.html#17/26.56317/-82.09309
+SUB-0044,Piney Road Substation,-81.8897791,26.6685985,X,,outside screening set; P-Surge 0.97 at Ian T-12h,https://storms.ngs.noaa.gov/storms/ian/index.html#17/26.66860/-81.88978
+SUB-0045,South Cape Substation,-81.9555606,26.5641954,AE,,screening set,https://storms.ngs.noaa.gov/storms/ian/index.html#17/26.56420/-81.95556
+SUB-0046,Tropic Isle Substation,-81.9234778,26.6541181,X,,outside screening set; P-Surge 0.70 at Ian T-12h,https://storms.ngs.noaa.gov/storms/ian/index.html#17/26.65412/-81.92348
+SUB-0047,West Cape Substation,-82.0143783,26.5913023,X,,outside screening set; P-Surge 0.89 at Ian T-12h,https://storms.ngs.noaa.gov/storms/ian/index.html#17/26.59130/-82.01438
+SUB-0048,,-82.1760398,27.0166083,AE,,screening set,https://storms.ngs.noaa.gov/storms/ian/index.html#17/27.01661/-82.17604
+SUB-0049,Harbor Substation,-82.0740482,26.9673188,AE,,screening set,https://storms.ngs.noaa.gov/storms/ian/index.html#17/26.96732/-82.07405
+SUB-0050,Cooper Substation,-82.0384433,26.9122285,AE,,screening set,https://storms.ngs.noaa.gov/storms/ian/index.html#17/26.91223/-82.03844
+SUB-0052,Punta Gorda Substation,-82.0469048,26.9343779,AE,,screening set,https://storms.ngs.noaa.gov/storms/ian/index.html#17/26.93438/-82.04690
+SUB-0053,,-82.0243728,26.8590215,AE,,screening set,https://storms.ngs.noaa.gov/storms/ian/index.html#17/26.85902/-82.02437
+SUB-0054,Terry Substation,-81.7558265,26.3558184,AE,,screening set,https://storms.ngs.noaa.gov/storms/ian/index.html#17/26.35582/-81.75583
+SUB-0055,Cape North Substation,-82.0230832,26.639138,X,,outside screening set; P-Surge 0.65 at Ian T-12h,https://storms.ngs.noaa.gov/storms/ian/index.html#17/26.63914/-82.02308
+SUB-0057,Edison Substation,-81.9002231,26.5576746,AE,,screening set,https://storms.ngs.noaa.gov/storms/ian/index.html#17/26.55767/-81.90022
+SUB-0058,Gladiolus Substation,-81.9014771,26.5104413,AE,,screening set,https://storms.ngs.noaa.gov/storms/ian/index.html#17/26.51044/-81.90148
+SUB-0061,Hercules Substation,-81.7577894,26.8070623,AE,,screening set,https://storms.ngs.noaa.gov/storms/ian/index.html#17/26.80706/-81.75779
+SUB-0062,North Trail Substation,-81.9185453,26.7524283,A,,screening set,https://storms.ngs.noaa.gov/storms/ian/index.html#17/26.75243/-81.91855

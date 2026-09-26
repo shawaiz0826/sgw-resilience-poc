@@ -380,6 +380,7 @@
         "flooded_outside_screening_set": []
       }
     },
+    "imagery_labelled_rows": 0,
     "outside_screening_above_threshold": [
       {
         "asset_id": "SUB-0044",

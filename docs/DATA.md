@@ -20,6 +20,7 @@ Study area: Lee (FIPS 12071) and Charlotte (12015) Counties, Florida; bounding b
 | D6 | Flood hazard zones, BFE | FEMA NFHL via Esri Living Atlas "USA Flood Hazard Reduced Set" (hazards.fema.gov unreachable) | current effective | FEMA data, public domain | `fema.py`, ArcGIS REST; FEMA endpoint tried first | zone and BFE at 198 assets; SFHA polygons for the map |
 | D7 | County outages, 15-min | ORNL EAGLE-I via figshare `10.6084/m9.figshare.24237376` (2022, 2023, 2024 + MCC) | 2022-2024 | CC BY 4.0 (Brelsford et al., Scientific Data, 2024) | `eaglei.py`, resumable download, Florida rows in the storm windows kept | 67 counties x 3 storms |
 | D8 | High-water marks, Ian | USGS STN event 325 | Sept-Oct 2022 | Public domain | `hwm.py` | 259 in the study area (NAVD88) |
+| — | Imagery truth for Decision B (Ian) | Manual inspection of NOAA NGS post-Ian imagery, 29 Sep–3 Oct 2022 (`data/processed/imagery_truth_ian.csv`, created by `src/models/imagery_truth.py`) | 2022 | Public domain imagery | 34 substations (screening set + P-Surge flags outside it); `flooded` = Y / N / UNCLEAR, filled by hand, blank until labelled | 0 labelled |
 | D9 | Ground elevation | USGS 3DEP via the EPQS point service | current | Public domain | `elevation.py`, one cached call per asset | 198 of 198 |
 | D12 | Hospitals | HIFLD Hospitals (via FEMA Critical Infrastructure service) | validated 2013-2014 | Public domain | `assets.py` | 9 open |
 

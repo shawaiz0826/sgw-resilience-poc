@@ -58,9 +58,11 @@ Advisory: 2022-09-28 06:00:00+00:00 (latest at or before T-12h). Switchgear heig
 
 USGS high-water marks are sparse: the median substation is about 4 km from the nearest one. The PLAN rule (500 m) is the primary truth; 1 km and 3 km inverse-distance-weighted water surfaces are sensitivity checks. Read every row with its sample size.
 
+Imagery truth (data/processed/imagery_truth_ian.csv): not yet labelled; the variant appears here once any row says Y or N.
+
 ### Truth: any HWM within 500 m above switchgear (PLAN rule)
 
-| Variant | Substations | With HWM obs. | Observed flooded | Flag precision | Flag recall | DE-ENERGIZE precision | DE-ENERGIZE recall |
+| Variant | Substations | With observation | Observed flooded | Flag precision | Flag recall | DE-ENERGIZE precision | DE-ENERGIZE recall |
 |---|---|---|---|---|---|---|---|
 | P-Surge, screening set (as designed) | 25 | 2 | 2 | 1.0 | 1.0 | 1.0 | 1.0 |
 | STATIC fallback, screening set | 25 | 2 | 2 | routes to judgment (n=25) | — | — | — |
@@ -68,7 +70,7 @@ USGS high-water marks are sparse: the median substation is about 4 km from the n
 
 ### Truth: IDW water surface of HWMs within 1 km above switchgear
 
-| Variant | Substations | With HWM obs. | Observed flooded | Flag precision | Flag recall | DE-ENERGIZE precision | DE-ENERGIZE recall |
+| Variant | Substations | With observation | Observed flooded | Flag precision | Flag recall | DE-ENERGIZE precision | DE-ENERGIZE recall |
 |---|---|---|---|---|---|---|---|
 | P-Surge, screening set (as designed) | 25 | 4 | 2 | 0.5 | 1.0 | 0.667 | 1.0 |
 | STATIC fallback, screening set | 25 | 4 | 2 | routes to judgment (n=25) | — | — | — |
@@ -76,7 +78,7 @@ USGS high-water marks are sparse: the median substation is about 4 km from the n
 
 ### Truth: IDW water surface of HWMs within 3 km above switchgear
 
-| Variant | Substations | With HWM obs. | Observed flooded | Flag precision | Flag recall | DE-ENERGIZE precision | DE-ENERGIZE recall |
+| Variant | Substations | With observation | Observed flooded | Flag precision | Flag recall | DE-ENERGIZE precision | DE-ENERGIZE recall |
 |---|---|---|---|---|---|---|---|
 | P-Surge, screening set (as designed) | 25 | 12 | 2 | 0.2 | 1.0 | 0.222 | 1.0 |
 | STATIC fallback, screening set | 25 | 12 | 2 | routes to judgment (n=25) | — | — | — |

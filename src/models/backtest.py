@@ -27,6 +27,7 @@ from scipy.stats import spearmanr
 
 from src.config import ROOT, load_config
 from src.decisions import c5_inundation as c5
+from src.models import imagery_truth
 from src.models.c1 import MODEL_DIR, load_model, model_version
 from src.models.features import advisory_at_lead, county_frame
 from src.pull.common import PROCESSED, STUDY_FIPS
@@ -185,6 +186,27 @@ def fr22(cfg: dict) -> dict:
         allsubs = tables[-1]
         missed = allsubs[(allsubs["observed_flooded"] == True) & ~allsubs["fema_zone"].isin(cfg["screening_zones"])]  # noqa: E712
         out["results"][tkey]["flooded_outside_screening_set"] = missed[["asset_id", "name", "fema_zone", "prob"]].to_dict(orient="records")
+    img = imagery_truth.labelled()  # manual NOAA NGS imagery labels (R5); skipped until someone fills them
+    out["imagery_labelled_rows"] = int(len(img))
+    if len(img):
+        out["truth_defs"]["imagery_manual"] = "manual inspection of NOAA NGS post-Ian imagery (Y = flooded)"
+        out["results"]["imagery_manual"] = {}
+        for v, _, _, _ in VARIANTS:
+            f = flags[v].merge(img, on="asset_id", how="left")
+            obs = f[f["observed"].fillna(False).astype(bool)]
+            t = obs["observed_flooded"].astype(bool)
+            r = {"substations": int(len(f)), "with_hwm_observation": int(len(obs)), "observed_flooded": int(t.sum()),
+                 "prob_sources": f["prob_source"].value_counts().to_dict(),
+                 "recommendations": f["recommendation"].value_counts().to_dict()}
+            if f["prob_source"].eq("STATIC").all():
+                r["routes_to_judgment"] = int(f["recommendation"].eq("JUDGMENT").sum())
+            else:
+                r["inundation_flag"] = _pr(obs["above_threshold"].astype(bool), t)
+                r["de_energize"] = _pr(obs["recommendation"].eq("DE-ENERGIZE"), t)
+            out["results"]["imagery_manual"][v] = r
+        out["results"]["imagery_manual"]["flooded_outside_screening_set"] = []
+    else:
+        print("imagery truth: not yet labelled")
     fr = pd.concat(tables, ignore_index=True)
     fr["critical_loads"] = fr["critical_loads"].apply(lambda v: ";".join(v))
     fr.to_parquet(PROCESSED / "fr22_ian.parquet", index=False)
@@ -264,10 +286,14 @@ def write_report(b: dict, cfg: dict) -> None:
           "or recall.", "",
           "USGS high-water marks are sparse: the median substation is about 4 km from the nearest one. The PLAN rule "
           "(500 m) is the primary truth; 1 km and 3 km inverse-distance-weighted water surfaces are sensitivity checks. "
-          "Read every row with its sample size.", ""]
+          "Read every row with its sample size.", "",
+          (f"Imagery truth (manual inspection of NOAA NGS post-Ian imagery, data/processed/imagery_truth_ian.csv): "
+           f"{f22['imagery_labelled_rows']} substations labelled Y or N." if f22["imagery_labelled_rows"]
+           else "Imagery truth (data/processed/imagery_truth_ian.csv): not yet labelled; the variant appears here once "
+                "any row says Y or N."), ""]
     for tkey, lab in f22["truth_defs"].items():
         L += [f"### Truth: {lab}", "",
-              "| Variant | Substations | With HWM obs. | Observed flooded | Flag precision | Flag recall | DE-ENERGIZE precision | DE-ENERGIZE recall |",
+              "| Variant | Substations | With observation | Observed flooded | Flag precision | Flag recall | DE-ENERGIZE precision | DE-ENERGIZE recall |",
               "|---|---|---|---|---|---|---|---|"]
         for v, vlab, _, _ in VARIANTS:
             r = f22["results"][tkey][v]
