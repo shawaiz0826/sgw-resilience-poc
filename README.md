@@ -27,7 +27,7 @@ make demo                        # creates .venv, installs requirements, opens o
 
 The app reads the committed `data/processed/` (1.5 MB) and model files. Map tiles come from CARTO over the
 internet; everything else runs offline. On macOS without Homebrew's `libomp`, the app runs normally but the
-LightGBM fallback model cannot load (`brew install libomp`, or use Docker). Other targets: `make test` (20
+LightGBM fallback model cannot load (`brew install libomp`, or use Docker). Other targets: `make test` (22
 tests), `make fit` (refit C1 and regenerate the backtest), `make data` (re-pull every public source, needs
 network), `make tabpfn` (optional benchmark, installs torch).
 

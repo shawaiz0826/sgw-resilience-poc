@@ -108,8 +108,9 @@ with st.sidebar:
     labels = {r.advisory_time.isoformat(): f"T-{r.hours_to_landfall:.0f}h · {r.advisory_time:%d %b %H}Z"
               for r in adv.itertuples()}
     default_t = adv[adv["hours_to_landfall"] >= DEFAULT_LEAD[storm]]["advisory_time"].max().isoformat()
-    t_iso = st.select_slider("NHC advisory (T-72h → landfall)", options=list(labels), value=default_t,
-                             format_func=labels.get, key=f"adv_{storm}")
+    slider_kw = {} if f"adv_{storm}" in st.session_state else {"value": default_t}  # a jump button may have set it
+    t_iso = st.select_slider("NHC advisory (T-72h → landfall)", options=list(labels), format_func=labels.get,
+                             key=f"adv_{storm}", **slider_kw)
     t = pd.Timestamp(t_iso)
     arow = adv[adv["advisory_time"] == t].iloc[0]
     kind, withdrawn = model_in_service()
@@ -277,6 +278,13 @@ with tabs[1]:
         st.info(f"Decision B does not run for this advisory: no P-Surge grid is loaded and it is before T-"
                 f"{C['decisionB_starts_hours']}h (the watch window). P2 sees nothing from C5. Move the advisory slider "
                 "closer to landfall, or pick Ian (real P-Surge).", icon=":material/schedule:")
+
+        def _jump_to_ian_t12():
+            a_ian = advisories("ian")
+            st.session_state["storm"] = "ian"
+            st.session_state["adv_ian"] = a_ian[a_ian["hours_to_landfall"] >= 12]["advisory_time"].max().isoformat()
+
+        st.button("Jump to Ian T-13h", on_click=_jump_to_ian_t12, icon=":material/fast_forward:")
     else:
         rc = B["recommendation"]
         est_b = pd.DataFrame(B["estimates"]["substations"])
@@ -419,7 +427,8 @@ with tabs[1]:
 # ---------------------------------------------------------------- P3
 with tabs[2]:
     st.markdown(f"#### Field operations — :gray-badge[{EXPOSURE_LABEL}] (read-only, FR32)")
-    st.caption("Each asset takes C1's P50 for its 0.1° cell × static weights (FEMA zone, ground elevation, voltage class). "
+    st.caption("Each asset takes C1's P50 for its cell (NHC 5 km contour bands sampled at 0.1° cell centres) × static "
+               "weights (FEMA zone, ground elevation, voltage class). "
                "Validated only at county level until Phase 2 retrains on SGW's asset outcomes. Public attributes only; "
                "maintenance attributes enter in production (PRD Appendix A).")
     last = actions_for(A["record_id"])
@@ -661,6 +670,8 @@ with tabs[7]:
         st.markdown("**Model version (FR30)** — P6 approves between storms; during a storm only P1 may withdraw, "
                     "with a reason; the system falls back to the previous approved version.")
         st.markdown(f"Approved active: `{selection()['model_version']}` · in service: `{model_version(kind)}`")
+        st.caption("Fallback = the other approved version. With the GLM active, withdrawal puts LightGBM in service with "
+                   "its banner; with LightGBM active, the GLM baseline.")
         with st.form("model"):
             why = st.text_input("Reason (required)")
             w1, w2 = st.columns(2)

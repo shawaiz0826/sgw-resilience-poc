@@ -71,7 +71,8 @@ crew-hours used, and for Decision B the height source, the probability source an
 1. C1 predicts P10/P50/P90 fraction out for all 67 Florida counties from the advisory's county p64/p34.
 2. C2 turns the two zones' P50/P90 into crew-hours and whole crews, and checks each staging site's 64 kt
    probability (Decision A).
-3. C3 applies C1 per 0.1-degree cell and multiplies by static weights; C4 passes substation scores to dependents.
+3. C3 applies C1 per cell (NHC 5 km contour bands sampled at 0.1° cell centres) and multiplies by static weights;
+   C4 passes substation scores to dependents.
 4. C5 runs when a P-Surge snapshot exists for the advisory, or from T-48h on the STATIC fallback, where each
    site gets a tier from FEMA zone and BFE and routes to P2's judgment (Decision B).
 5. Both records are written. Only then can C6 read them.
