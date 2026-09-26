@@ -4,6 +4,7 @@ Every number is copied from the records; the record IDs used are listed. P5 edit
 """
 from __future__ import annotations
 
+from src.decisions.c2_staging import scale_line
 from src.decisions.common import EXPOSURE_LABEL, UNITS
 
 
@@ -27,6 +28,7 @@ def briefing(a: dict, b: dict | None, actions_a: list[dict] | None = None) -> st
     L.append(f"   - Recommended request: {_n(plan['mutual_aid_crews'])} crews of {plan['crew_size']} "
              f"({_n(plan['mutual_aid_workers'])} workers), sized on P90 crew-hours {_n(plan['total_crew_hours_p90'])} less SGW's "
              f"own {_n(plan['own_crew_hours'])} ({a['crew_hours_source']}), over {plan['restoration_days']:.0f} days.")
+    L.append(f"   - {scale_line(plan)}")
     for z in plan["zones"]:
         site = z.get("assigned_site_name") or "no site below the wind threshold (Storm Director to decide)"
         moved = f" (displaced from {z['mapped_site_name']})" if z.get("displaced") else ""

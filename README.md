@@ -38,7 +38,8 @@ network), `make tabpfn` (optional benchmark, installs torch).
 **A. Milton, held out, T-72h (P1).** The sidebar defaults to Milton's 7 Oct 00Z advisory. C1 gives customers out
 per county at P10/P50/P90 for all 67 Florida counties; C2 turns Lee and Charlotte's P90 into crew-hours and a
 mutual aid request of **1,652 crews** (placeholder crew-hours, crew size and restoration window, all labelled),
-and checks each staging site's 64 kt probability. P1 approves, edits or overrides with a mandatory reason; the
+and checks each staging site's 64 kt probability. For scale, that request is 74 customers per worker over the
+7-day placeholder window; after Ian, FPL managed about 95 per worker over 9 days. P1 approves, edits or overrides with a mandatory reason; the
 action is written to the record, the P5 briefing quotes it, and "Rerun this record" returns the identical output
 hash. The confidence banner is off: the active model met its targets on Milton (top-5 county match 1.00, P90
 coverage 0.87). Withdraw it on the Governance tab and the fallback LightGBM comes into service with the

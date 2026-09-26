@@ -12,6 +12,17 @@ from __future__ import annotations
 
 import math
 
+CALIBRATION_NOTE = ("Ian, FPL: about 2 million customers restored by about 21,000 workers in about 9 days, roughly 95 per "
+                    "worker (FPL newsroom; S&P Global, Sept 2022)")
+
+
+def scale_line(plan: dict) -> str:
+    """One-line sense check of the request against Ian (shown on P1 and in the briefing)."""
+    if not plan.get("customers_per_worker"):
+        return "For scale: no mutual aid is requested at this advisory; after Ian, FPL managed about 95 customers per worker over 9 days."
+    return (f"For scale: this request works out to {plan['customers_per_worker']:.0f} customers per worker over the "
+            f"{plan['restoration_days']:.0f}-day placeholder window; after Ian, FPL managed about 95 per worker over 9 days.")
+
 
 def haversine_km(lon1, lat1, lon2, lat2) -> float:
     r = 6371.0
@@ -66,10 +77,14 @@ def staging_plan(zones: list[dict], site_p64: dict[str, float], own_crew_hours: 
     shortfall = max(0.0, tot90 - float(own_crew_hours))
     crews = math.ceil(shortfall / per_crew) if shortfall > 0 else 0
     crews_p50 = math.ceil(max(0.0, tot50 - float(own_crew_hours)) / per_crew)
+    workers = crews * int(cfg["crew_size"])
+    p90_out = sum(r["customers_out_p90"] for r in rows)
     return {
         "zones": rows, "total_crew_hours_p50": round(tot50, 1), "total_crew_hours_p90": round(tot90, 1),
         "own_crew_hours": float(own_crew_hours), "shortfall_crew_hours_p90": round(shortfall, 1),
-        "mutual_aid_crews": crews, "mutual_aid_workers": crews * int(cfg["crew_size"]),
+        "mutual_aid_crews": crews, "mutual_aid_workers": workers,
+        "customers_per_worker": round(p90_out / workers, 1) if workers else None,
+        "calibration_note": CALIBRATION_NOTE,
         "mutual_aid_crews_if_p50": crews_p50, "crew_size": int(cfg["crew_size"]),
         "restoration_days": float(cfg["restoration_days"]), "restoration_rate": float(cfg["restoration_rate"]),
         "site_wind_threshold": float(cfg["site_wind_threshold"]), "site_p64": site_p64,

@@ -22,6 +22,7 @@ import streamlit as st  # noqa: E402
 import ui  # noqa: E402
 from src.config import load_config  # noqa: E402
 from src.decisions import c5_inundation as c5  # noqa: E402
+from src.decisions.c2_staging import scale_line  # noqa: E402
 from src.decisions.common import EXPOSURE_LABEL, UNITS, advisories  # noqa: E402
 from src.decisions.run import replay, run  # noqa: E402
 from src.llm import prompts, provider, qa, template  # noqa: E402
@@ -159,6 +160,7 @@ with tabs[0]:
     c2.metric("Workers", f"{plan['mutual_aid_workers']:,}", help=f"crew size {plan['crew_size']} (PLACEHOLDER)")
     c3.metric("P90 crew-hours (Lee + Charlotte)", ui.fmt(plan["total_crew_hours_p90"]))
     c4.metric("If sized on P50", f"{plan['mutual_aid_crews_if_p50']:,} crews")
+    st.caption(scale_line(plan), help=plan.get("calibration_note"))
 
     with st.container(border=True):
         cc1, cc2 = st.columns([1, 2])
